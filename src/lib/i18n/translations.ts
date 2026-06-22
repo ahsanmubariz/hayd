@@ -212,6 +212,13 @@ const translations = {
 
   // ===== Language =====
   'lang.switch': { id: 'Bahasa', en: 'Language' },
+
+  // ===== PWA Install Prompt =====
+  'pwa.title': { id: 'Pasang Hayd', en: 'Install Hayd' },
+  'pwa.ios_desc': { id: 'Tambahkan Hayd ke Layar Beranda Anda untuk pengalaman yang lebih baik. Ketuk tombol Bagikan, lalu "Tambahkan ke Layar Beranda".', en: 'Add Hayd to your Home Screen for a better experience. Tap the Share button, then "Add to Home Screen".' },
+  'pwa.android_desc': { id: 'Pasang Hayd sebagai aplikasi untuk akses lebih cepat, dukungan offline, dan pengalaman native.', en: 'Install Hayd as an app for faster access, offline support, and a native experience.' },
+  'pwa.later': { id: 'Nanti', en: 'Later' },
+  'pwa.install': { id: 'Pasang', en: 'Install' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

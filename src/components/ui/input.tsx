@@ -22,7 +22,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         ref={ref}
         id={inputId}
         className={clsx(
-          'h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground',
+          'h-10 w-full rounded-xl border border-border bg-card px-3 text-base text-foreground',
           'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2',
           'focus-visible:ring-ring',
           error && 'border-destructive',

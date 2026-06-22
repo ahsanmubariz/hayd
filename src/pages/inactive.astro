@@ -1,0 +1,16 @@
+---
+import AuthLayout from '@/layouts/AuthLayout.astro';
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+---
+
+<AuthLayout title="Account inactive">
+  <div class="space-y-3">
+    <Alert variant="warning" title="Your account is inactive">
+      Please contact an administrator to reactivate your account.
+    </Alert>
+    <Button variant="outline" class="w-full" onclick="window.location.href='/login'">
+      Back to sign in
+    </Button>
+  </div>
+</AuthLayout>

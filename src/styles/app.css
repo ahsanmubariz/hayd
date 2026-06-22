@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #fbf7f4;
+  --color-foreground: #3a2e39;
+  --color-card: #ffffff;
+  --color-card-foreground: #3a2e39;
+  --color-primary: #c9647a;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #e9d7d8;
+  --color-secondary-foreground: #5a3a47;
+  --color-accent: #d8a7b2;
+  --color-accent-foreground: #3a2e39;
+  --color-destructive: #c14c4c;
+  --color-destructive-foreground: #ffffff;
+  --color-muted: #f1e5e7;
+  --color-muted-foreground: #7a6570;
+  --color-border: #e9d7d8;
+  --color-ring: #c9647a;
+}
+
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+  --color-background: #1c1418;
+  --color-foreground: #f1e5e7;
+  --color-card: #2a1f24;
+  --color-card-foreground: #f1e5e7;
+  --color-primary: #d88496;
+  --color-primary-foreground: #1c1418;
+  --color-secondary: #3a2a31;
+  --color-secondary-foreground: #f1e5e7;
+  --color-accent: #c9647a;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #d66b6b;
+  --color-destructive-foreground: #ffffff;
+  --color-muted: #2a1f24;
+  --color-muted-foreground: #a8949c;
+  --color-border: #3a2a31;
+  --color-ring: #d88496;
+}
+
+html, body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,80 @@
+---
+import AppShell from '@/layouts/AppShell.astro';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { CycleStatsCards } from '@/components/app/cycle-stats-cards';
+import { EmptyState } from '@/components/ui/empty-state';
+import { findPeriodLogs } from '@/lib/db/client';
+import { daysBetween } from '@/lib/utils/dates';
+import { translate } from '@/lib/i18n/use-translation';
+
+export const prerender = false;
+
+const user = Astro.locals.user!;
+const periodLogs = await findPeriodLogs(user.id);
+
+const cycleLengths: number[] = [];
+for (let i = 1; i < periodLogs.length; i++) {
+  const len = daysBetween(periodLogs[i - 1].start_date, periodLogs[i].start_date);
+  if (len >= 15 && len <= 90) cycleLengths.push(len);
+}
+
+const avgCycle = cycleLengths.length > 0 ? Math.round(cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length) : undefined;
+const periodLengths = periodLogs.map((l) => daysBetween(l.start_date, l.end_date) + 1);
+const avgPeriod = periodLengths.length > 0 ? Math.round(periodLengths.reduce((a, b) => a + b, 0) / periodLengths.length) : undefined;
+
+const cv = cycleLengths.length > 1
+  ? Math.sqrt(cycleLengths.reduce((acc, l) => acc + (l - (avgCycle ?? 28)) ** 2, 0) / cycleLengths.length) / (avgCycle ?? 28)
+  : 0;
+const trendLabel = cv > 0.2 ? 'More variable than usual' : cycleLengths.length > 1 ? 'Consistent' : 'Not enough data';
+---
+
+<AppShell title="History" activeRoute="home" headerTitle={translate('history.title')} headerSubtitle={translate('history.subtitle')}>
+  <div class="space-y-4 p-4">
+    {periodLogs.length > 0 && (
+      <CycleStatsCards
+        averageCycleLength={avgCycle}
+        averagePeriodLength={avgPeriod}
+        totalCycles={periodLogs.length}
+        trendLabel={trendLabel}
+        client:load
+      />
+    )}
+
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm">{translate('history.period_log')}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {periodLogs.length === 0 ? (
+          <EmptyState
+            icon="📅"
+            title={translate('history.no_periods')}
+            description={translate('history.no_periods_desc')}
+          />
+        ) : (
+          <ul className="divide-y divide-border">
+            {[...periodLogs].reverse().map((log) => (
+              <li key={log.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    {new Date(log.start_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {log.start_date !== log.end_date && (
+                      <> — {new Date(log.end_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</>
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {daysBetween(log.start_date, log.end_date) + 1} {translate('history.days')}
+                    {log.flow_intensity ? <> · <span className="capitalize">{log.flow_intensity}</span></> : ''}
+                  </p>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(log.start_date + 'T12:00:00').getFullYear()}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  </div>
+</AppShell>

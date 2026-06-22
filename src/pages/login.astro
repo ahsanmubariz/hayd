@@ -1,0 +1,67 @@
+---
+import AuthLayout from '@/layouts/AuthLayout.astro';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Alert } from '@/components/ui/alert';
+import { authenticateUser } from '@/lib/modules/users/service';
+import { createSession } from '@/lib/auth/session';
+import { getCsrfToken, validateCsrf } from '@/lib/auth/csrf';
+import { checkRateLimit, resetRateLimit } from '@/lib/auth/rate-limit';
+
+export const prerender = false;
+
+const csrfToken = getCsrfToken(Astro);
+
+const errors: Record<string, string> = {};
+let generalError = '';
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+
+  // CSRF validation
+  if (!validateCsrf(Astro, Astro.request, formData)) {
+    generalError = 'Invalid request. Please try again.';
+  } else {
+    // Rate limiting
+    const rateCheck = await checkRateLimit(Astro.request, 'login');
+    if (!rateCheck.allowed) {
+      generalError = `Too many login attempts. Please try again in ${Math.ceil((rateCheck.retryAfter ?? 900) / 60)} minutes.`;
+    } else {
+      const email = String(formData.get('email') ?? '').trim();
+      const password = String(formData.get('password') ?? '');
+
+      if (!email) errors.email = 'Email is required';
+      if (!password) errors.password = 'Password is required';
+
+      if (!errors.email && !errors.password) {
+        try {
+          const user = await authenticateUser(email, password);
+          // Reset rate limit on successful login
+          await resetRateLimit(Astro.request, 'login');
+          const session = await createSession(user.id);
+          Astro.cookies.set('hayd_session', session.id, {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: import.meta.env.PROD,
+            path: '/',
+            maxAge: 60 * 60 * 24 * 7,
+          });
+          return Astro.redirect(user.role === 'admin' ? '/admin' : '/app');
+        } catch {
+          generalError = 'Invalid email or password';
+        }
+      }
+    }
+  }
+}
+---
+
+<AuthLayout title="Sign in">
+  <form method="POST" class="space-y-3">
+    <input type="hidden" name="_csrf" value={csrfToken} />
+    {generalError && <Alert variant="error">{generalError}</Alert>}
+    <Input type="email" name="email" label="Email" autoComplete="email" required error={errors.email} />
+    <Input type="password" name="password" label="Password" autoComplete="current-password" required error={errors.password} />
+    <Button type="submit" className="w-full">Sign in</Button>
+  </form>
+</AuthLayout>

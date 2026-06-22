@@ -1,0 +1,58 @@
+---
+import AdminShell from '@/layouts/AdminShell.astro';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Alert } from '@/components/ui/alert';
+import { registerUser } from '@/lib/modules/users/service';
+import { auditUserCreated } from '@/lib/modules/audit/service';
+import { getCsrfToken, validateCsrf } from '@/lib/auth/csrf';
+
+export const prerender = false;
+
+const csrfToken = getCsrfToken(Astro);
+
+let errors: Record<string, string> = {};
+let success = false;
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  if (!validateCsrf(Astro, Astro.request, formData)) {
+    errors = { form: 'Invalid CSRF token' };
+  } else {
+    const email = String(formData.get('email') ?? '').trim();
+    const password = String(formData.get('password') ?? '');
+    const displayName = String(formData.get('displayName') ?? '').trim();
+    const role = String(formData.get('role') ?? 'user');
+
+    try {
+      const newUser = await registerUser({ email, password, displayName, role: role as 'admin' | 'user' });
+      await auditUserCreated(Astro.locals.user!.id, newUser.id, newUser.email);
+      success = true;
+    } catch (err) {
+      if (err && typeof err === 'object' && 'fieldErrors' in err) {
+        errors = (err as { fieldErrors: Record<string, string> }).fieldErrors;
+      }
+    }
+  }
+}
+---
+
+<AdminShell title="Create user" activeRoute="users">
+  <div class="space-y-4">
+    {success ? (
+      <Alert variant="success">User created. They can sign in with the temporary password.</Alert>
+    ) : (
+      <form method="POST" class="space-y-3 rounded-2xl border border-border bg-card p-4">
+        <input type="hidden" name="_csrf" value={csrfToken} />
+        <Input type="email" name="email" label="Email" required error={errors.email} />
+        <Input type="text" name="displayName" label="Display name" required error={errors.displayName} />
+        <Input type="password" name="password" label="Temporary password" required error={errors.password} />
+        <select name="role" class="h-10 w-full rounded-xl border border-border bg-card px-3 text-sm">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+        <Button type="submit">Create user</Button>
+      </form>
+    )}
+  </div>
+</AdminShell>

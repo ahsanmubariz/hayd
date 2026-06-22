@@ -1,0 +1,21 @@
+---
+import { revokeSession } from '@/lib/auth/session';
+
+export const prerender = false;
+
+const sessionId = Astro.cookies.get('hayd_session')?.value;
+if (sessionId) {
+  await revokeSession(sessionId);
+}
+Astro.cookies.delete('hayd_session', {
+  path: '/',
+  httpOnly: true,
+  sameSite: 'lax',
+  secure: import.meta.env.PROD,
+});
+Astro.cookies.delete('hayd_csrf', {
+  path: '/',
+  sameSite: 'lax',
+  secure: import.meta.env.PROD,
+});
+return Astro.redirect('/login');

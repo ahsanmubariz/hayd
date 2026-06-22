@@ -1,0 +1,116 @@
+---
+import AdminShell from '@/layouts/AdminShell.astro';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { UserStatusBadge } from '@/components/admin/user-status-badge';
+import { UserActionMenu } from '@/components/admin/user-action-menu';
+import { Alert } from '@/components/ui/alert';
+import { findUserById, findProfile, findPeriodLogs, findDailyStatusLogs, findLatestPrediction } from '@/lib/db/client';
+import { deactivateUser, reactivateUser, softDeleteUser, adminResetPassword } from '@/lib/modules/users/service';
+import { auditUserDeactivated, auditUserReactivated, auditUserDeleted, auditPasswordReset } from '@/lib/modules/audit/service';
+import { getCsrfToken, validateCsrf } from '@/lib/auth/csrf';
+
+export const prerender = false;
+
+const csrfToken = getCsrfToken(Astro);
+
+const targetUserId = Astro.params.id!;
+const targetUser = await findUserById(targetUserId);
+const profile = await findProfile(targetUserId);
+const periodLogs = await findPeriodLogs(targetUserId);
+const dailyLogs = await findDailyStatusLogs(targetUserId);
+const prediction = await findLatestPrediction(targetUserId);
+
+let message = '';
+
+if (!targetUser) {
+  throw new Error('User not found');
+}
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  if (!validateCsrf(Astro, Astro.request, formData)) {
+    message = 'Action failed';
+  } else {
+    const action = String(formData.get('action') ?? '');
+    const adminId = Astro.locals.user!.id;
+
+    try {
+      if (action === 'deactivate') {
+        await deactivateUser(targetUserId);
+        await auditUserDeactivated(adminId, targetUserId);
+        message = 'User deactivated';
+      } else if (action === 'reactivate') {
+        await reactivateUser(targetUserId);
+        await auditUserReactivated(adminId, targetUserId);
+        message = 'User reactivated';
+      } else if (action === 'delete') {
+        await softDeleteUser(targetUserId);
+        await auditUserDeleted(adminId, targetUserId);
+        message = 'User soft-deleted';
+      } else if (action === 'reset_password') {
+        const newPassword = String(formData.get('newPassword') ?? '');
+        await adminResetPassword(targetUserId, newPassword);
+        await auditPasswordReset(adminId, targetUserId);
+        message = 'Password reset successfully';
+      }
+      return Astro.redirect(`/admin/users/${targetUserId}`);
+    } catch {
+      message = 'Action failed';
+    }
+  }
+}
+---
+
+<AdminShell title="User detail" activeRoute="users">
+  <div class="space-y-4">
+    {message && <Alert variant={message === 'Action failed' ? 'error' : 'success'}>{message}</Alert>}
+
+    <Card>
+      <CardHeader>
+        <CardTitle>Account summary</CardTitle>
+      </CardHeader>
+      <CardContent class="space-y-2 text-sm">
+        <div class="flex items-center justify-between"><span class="text-muted-foreground">Email</span><span class="font-medium">{targetUser.email}</span></div>
+        <div class="flex items-center justify-between"><span class="text-muted-foreground">Role</span><span class="font-medium">{targetUser.role}</span></div>
+        <div class="flex items-center justify-between"><span class="text-muted-foreground">Status</span><UserStatusBadge status={targetUser.status} /></div>
+        <div class="flex items-center justify-between"><span class="text-muted-foreground">Created</span><span class="font-medium">{targetUser.created_at.slice(0, 10)}</span></div>
+        {profile && <div class="flex items-center justify-between"><span class="text-muted-foreground">Display name</span><span className="font-medium">{profile.display_name}</span></div>}
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>Activity</CardTitle>
+      </CardHeader>
+      <CardContent class="space-y-2 text-sm">
+        <div class="flex items-center justify-between"><span class="text-muted-foreground">Period logs</span><span class="font-medium">{periodLogs.length}</span></div>
+        <div class="flex items-center justify-between"><span class="text-muted-foreground">Daily logs</span><span class="font-medium">{dailyLogs.length}</span></div>
+        <div class="flex items-center justify-between"><span class="text-muted-foreground">Last prediction</span><span class="font-medium">{prediction?.predicted_next_period_date ?? '—'}</span></div>
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>Actions</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <input type="hidden" name="_csrf" value={csrfToken} />
+        <UserActionMenu
+          user={targetUser}
+          onDeactivate={() => {}}
+          onReactivate={() => {}}
+          onDelete={() => {}}
+          onResetPassword={async (newPassword) => {
+            const form = new FormData();
+            form.append('action', 'reset_password');
+            form.append('newPassword', newPassword);
+            form.append('_csrf', document.querySelector('input[name="_csrf"]').value);
+            await fetch(window.location.pathname, { method: 'POST', body: form });
+            window.location.reload();
+          }}
+          client:load
+        />
+      </CardContent>
+    </Card>
+  </div>
+</AdminShell>

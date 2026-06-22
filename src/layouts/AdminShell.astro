@@ -1,0 +1,88 @@
+---
+import '@/styles/app.css';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
+
+interface Props {
+  title?: string;
+  activeRoute?: 'dashboard' | 'users' | 'audit' | 'settings';
+}
+
+const { title = 'Admin', activeRoute = 'dashboard' } = Astro.props;
+const user = Astro.locals.user;
+
+const navItems = [
+  { href: '/admin', label: 'Dashboard', active: activeRoute === 'dashboard' },
+  { href: '/admin/users', label: 'Users', active: activeRoute === 'users' },
+  { href: '/admin/audit-logs', label: 'Audit Logs', active: activeRoute === 'audit' },
+  { href: '/admin/settings', label: 'Settings', active: activeRoute === 'settings' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} · Hayd Admin</title>
+    <script is:inline>
+      (function() {
+        var t = localStorage.getItem('hayd-theme');
+        var dark = t === 'dark' || (t === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.toggle('dark', dark);
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen bg-background text-foreground antialiased">
+    <header class="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur-sm">
+      <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+        <!-- Left: brand + nav -->
+        <div class="flex items-center gap-6">
+          <a href="/admin" class="flex items-center gap-2 shrink-0">
+            <span class="text-xl font-bold text-primary">H</span>
+            <span class="text-sm font-semibold text-foreground hidden sm:inline">Hayd Admin</span>
+          </a>
+          <nav class="flex items-center gap-1" aria-label="Admin">
+            {navItems.map((item) => (
+              <a
+                href={item.href}
+                class={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                  item.active
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                }`}
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+        </div>
+        <!-- Right: theme + user + actions -->
+        <div class="flex items-center gap-2 shrink-0">
+          <ThemeToggle client:load />
+          <a
+            href="/app"
+            class="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            ← App
+          </a>
+          <a
+            href="/logout"
+            class="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            Logout
+          </a>
+          <div class="flex items-center gap-2 ml-1">
+            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
+              {user?.email?.charAt(0).toUpperCase() ?? 'A'}
+            </div>
+            <span class="hidden md:block text-xs text-muted-foreground max-w-[140px] truncate">{user?.email}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="mx-auto max-w-6xl px-4 py-6">
+      <slot />
+    </div>
+  </body>
+</html>

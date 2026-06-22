@@ -1,0 +1,82 @@
+---
+import AppShell from '@/layouts/AppShell.astro';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { CalendarGrid } from '@/components/ui/calendar-grid';
+import { Button } from '@/components/ui/button';
+import { findPeriodLogs, findLatestPrediction } from '@/lib/db/client';
+import { todayIso, addDays } from '@/lib/utils/dates';
+import { translate } from '@/lib/i18n/use-translation';
+
+export const prerender = false;
+
+const user = Astro.locals.user!;
+const periodLogs = await findPeriodLogs(user.id);
+const prediction = await findLatestPrediction(user.id);
+const today = todayIso();
+
+const initialMonth = today.slice(0, 7);
+
+const markedDates = new Map<string, 'period' | 'predicted' | 'ovulation' | 'fertile'>();
+
+for (const log of periodLogs) {
+  let d = log.start_date;
+  while (d <= log.end_date) {
+    if (!markedDates.has(d)) markedDates.set(d, 'period');
+    d = addDays(d, 1);
+  }
+}
+
+if (prediction) {
+  if (prediction.predicted_ovulation_date) markedDates.set(prediction.predicted_ovulation_date, 'ovulation');
+  if (prediction.predicted_next_period_date) markedDates.set(prediction.predicted_next_period_date, 'predicted');
+  if (prediction.predicted_fertile_start && prediction.predicted_fertile_end) {
+    let d = prediction.predicted_fertile_start;
+    while (d <= prediction.predicted_fertile_end) {
+      if (!markedDates.has(d)) markedDates.set(d, 'fertile');
+      d = addDays(d, 1);
+    }
+  }
+}
+---
+
+<AppShell title="Calendar" activeRoute="calendar" headerTitle={translate('nav.calendar')} headerSubtitle="Track your cycle at a glance">
+  <div class="space-y-4 p-4">
+    <Card>
+      <CalendarGrid
+        initialMonth={initialMonth}
+        today={today}
+        markedDates={markedDates}
+        onSelect={(date) => {
+          globalThis.location.href = `/app/log?date=${date}`;
+        }}
+        client:load
+      />
+    </Card>
+
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm">{translate('calendar.legend')}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <span className="inline-flex items-center gap-2">
+            <span className="h-3 w-3 rounded-full bg-primary shrink-0" /> {translate('calendar.period')}
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <span className="h-3 w-3 rounded-full bg-primary/20 shrink-0" /> {translate('calendar.predicted')}
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <span className="h-3 w-3 rounded-full bg-accent shrink-0" /> {translate('calendar.ovulation')}
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <span className="h-3 w-3 rounded-full bg-accent/30 shrink-0" /> {translate('calendar.fertile_window')}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+
+    <a href="/app/log">
+      <Button className="w-full">{translate('calendar.add_log')}</Button>
+    </a>
+  </div>
+</AppShell>

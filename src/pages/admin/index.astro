@@ -1,0 +1,54 @@
+---
+import AdminShell from '@/layouts/AdminShell.astro';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { KpiCards } from '@/components/admin/kpi-cards';
+import { listUsers } from '@/lib/modules/users/repository';
+
+export const prerender = false;
+
+const user = Astro.locals.user!;
+const users = await listUsers();
+const now = Date.now();
+const thirtyDaysMs = 1000 * 60 * 60 * 24 * 30;
+
+const totalUsers = users.length;
+const activeUsers = users.filter((u) => u.status === 'active').length;
+const inactiveUsers = users.filter((u) => u.status === 'inactive').length;
+const newUsers = users.filter((u) => now - new Date(u.created_at).getTime() < thirtyDaysMs).length;
+---
+
+<AdminShell title="Dashboard" activeRoute="dashboard">
+  <div class="space-y-6">
+    <div>
+      <h1 className="text-lg font-semibold text-foreground">Dashboard</h1>
+      <p className="text-sm text-muted-foreground">Welcome back, {user.email}</p>
+    </div>
+
+    <KpiCards
+      totalUsers={totalUsers}
+      activeUsers={activeUsers}
+      inactiveUsers={inactiveUsers}
+      newUsers={newUsers}
+      client:load
+    />
+
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm">Quick actions</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-wrap gap-2">
+          <a href="/admin/users/new" className="rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
+            + Add user
+          </a>
+          <a href="/admin/users" className="rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted">
+            Manage users
+          </a>
+          <a href="/admin/audit-logs" className="rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted">
+            View audit logs
+          </a>
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+</AdminShell>

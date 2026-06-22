@@ -1,0 +1,77 @@
+---
+import '@/styles/app.css';
+import { Header } from '@/components/ui/header';
+import { BottomNav } from '@/components/ui/bottom-nav';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { LangToggle } from '@/components/ui/lang-toggle';
+import { translate, setLang, getLang } from '@/lib/i18n/use-translation';
+import type { Lang } from '@/lib/i18n/translations';
+
+interface Props {
+  title?: string;
+  activeRoute?: 'home' | 'calendar' | 'log' | 'predictions' | 'profile';
+  headerTitle?: string;
+  headerSubtitle?: string;
+  showBack?: boolean;
+  backHref?: string;
+}
+
+const { title = 'Hayd', activeRoute = 'home', headerTitle, headerSubtitle, showBack, backHref } = Astro.props;
+
+// Set language from cookie for SSR
+const cookieLang = Astro.cookies.get('hayd-lang')?.value;
+if (cookieLang === 'id' || cookieLang === 'en') {
+  setLang(cookieLang as Lang);
+}
+
+const user = Astro.locals.user;
+const navItems = [
+  { href: '/app', label: translate('nav.home'), icon: '🏠', active: activeRoute === 'home' },
+  { href: '/app/calendar', label: translate('nav.calendar'), icon: '📅', active: activeRoute === 'calendar' },
+  { href: '/app/log', label: translate('nav.log'), icon: '✏️', active: activeRoute === 'log' },
+  { href: '/app/predictions', label: translate('nav.predictions'), icon: '📊', active: activeRoute === 'predictions' },
+  { href: '/app/profile', label: translate('nav.profile'), icon: '👤', active: activeRoute === 'profile' },
+];
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} · Hayd</title>
+    <style is:inline>
+      *,*::before,*::after{box-sizing:border-box}
+      .hidden{display:none!important}
+    </style>
+    <script is:inline>
+      (function() {
+        var t = localStorage.getItem('hayd-theme');
+        var dark = t === 'dark' || (t === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.toggle('dark', dark);
+        var l = localStorage.getItem('hayd-lang') || 'id';
+        document.documentElement.lang = l;
+        document.cookie = 'hayd-lang=' + l + ';path=/;max-age=31536000';
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen bg-background text-foreground antialiased">
+    <div class="pb-20">
+      <Header
+        title={headerTitle ?? (activeRoute === 'home' ? `${translate('nav.greeting')}, ${user?.email?.split('@')[0] ?? translate('nav.there')}` : title)}
+        subtitle={headerSubtitle}
+        userEmail={user?.email}
+        showBack={showBack}
+        backHref={backHref}
+      />
+      <main class="mx-auto max-w-lg">
+        <slot />
+      </main>
+    </div>
+    <BottomNav items={navItems} client:load />
+    <div class="fixed bottom-24 right-4 z-50 flex flex-col items-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-sm backdrop-blur-sm">
+      <LangToggle client:load />
+      <ThemeToggle client:load />
+    </div>
+  </body>
+</html>

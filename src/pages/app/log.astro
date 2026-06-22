@@ -1,0 +1,375 @@
+---
+import AppShell from '@/layouts/AppShell.astro';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { addPeriodLog, addDailyStatus, editPeriodLog, editDailyStatus } from '@/lib/modules/cycles/service';
+import { getDailyStatusLog, listPeriodLogs } from '@/lib/modules/cycles/repository';
+import { todayIso } from '@/lib/utils/dates';
+import { translate } from '@/lib/i18n/use-translation';
+import { getCsrfToken, validateCsrf } from '@/lib/auth/csrf';
+
+export const prerender = false;
+
+const csrfToken = getCsrfToken(Astro);
+
+const user = Astro.locals.user!;
+const url = new URL(Astro.request.url);
+const logDate = url.searchParams.get('date') ?? todayIso();
+const tab = url.searchParams.get('tab') ?? 'status';
+
+let message = '';
+let messageType: 'success' | 'error' = 'success';
+let errors: Record<string, string> = {};
+
+const existingStatus = await getDailyStatusLog(user.id, logDate);
+const allPeriods = await listPeriodLogs(user.id);
+const existingPeriod = allPeriods.find(p => p.start_date <= logDate && p.end_date >= logDate) ?? null;
+
+function formatDisplayDate(iso: string): string {
+  if (!iso) return iso;
+  const d = new Date(iso + 'T12:00:00');
+  return d.toLocaleDateString('en-GB');
+}
+
+function formatDateLong(iso: string): string {
+  if (!iso) return iso;
+  const d = new Date(iso + 'T12:00:00');
+  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  if (!validateCsrf(Astro, Astro.request, formData)) {
+    message = translate('log.something_wrong');
+    messageType = 'error';
+  } else {
+    const action = String(formData.get('action') ?? '');
+    const formDate = String(formData.get('logDate') ?? logDate);
+
+    try {
+      if (action === 'period') {
+        const startDate = String(formData.get('startDate') ?? '');
+        const endDate = String(formData.get('endDate') ?? '');
+        const flowIntensity = String(formData.get('flowIntensity') ?? '');
+        const notes = String(formData.get('notes') ?? '');
+        if (existingPeriod) {
+          await editPeriodLog(user.id, existingPeriod.id, { startDate, endDate, flowIntensity, notes });
+          message = translate('log.period_updated');
+        } else {
+          await addPeriodLog(user.id, { startDate, endDate, flowIntensity, notes });
+          message = translate('log.period_saved');
+        }
+        messageType = 'success';
+      } else {
+        const bleedingStatus = String(formData.get('bleedingStatus') ?? '');
+        const painLevel = String(formData.get('painLevel') ?? '');
+        const mood = String(formData.get('mood') ?? '');
+        const energyLevel = String(formData.get('energyLevel') ?? '');
+        const notes = String(formData.get('notes') ?? '');
+        if (existingStatus) {
+          await editDailyStatus(user.id, formDate, {
+            bleedingStatus,
+            painLevel: painLevel ? Number(painLevel) : undefined,
+            mood,
+            energyLevel: energyLevel ? Number(energyLevel) : undefined,
+            notes,
+          });
+          message = translate('log.daily_updated');
+        } else {
+          await addDailyStatus(user.id, {
+            logDate: formDate,
+            bleedingStatus,
+            painLevel: painLevel ? Number(painLevel) : undefined,
+            mood,
+            energyLevel: energyLevel ? Number(energyLevel) : undefined,
+            notes,
+          });
+          message = translate('log.daily_saved');
+        }
+        messageType = 'success';
+      }
+    } catch (err) {
+      if (err && typeof err === 'object' && 'fieldErrors' in err) {
+        errors = (err as { fieldErrors: Record<string, string> }).fieldErrors;
+        message = translate('log.fix_errors');
+      } else {
+        message = translate('log.something_wrong');
+      }
+      messageType = 'error';
+    }
+  }
+}
+
+// Pain level labels
+function painLabel(i: number): string {
+  if (i === 0) return translate('log.no_pain');
+  if (i < 4) return translate('log.mild');
+  if (i < 7) return translate('log.moderate');
+  if (i < 9) return translate('log.severe');
+  return translate('log.very_severe');
+}
+
+// Energy level labels
+function energyLabel(i: number): string {
+  if (i === 0) return translate('log.exhausted');
+  if (i < 4) return translate('log.low');
+  if (i < 7) return translate('log.medium');
+  if (i < 9) return translate('log.high');
+  return translate('log.very_high');
+}
+
+const moods = [
+  { key: 'log.happy', val: 'happy' },
+  { key: 'log.calm', val: 'calm' },
+  { key: 'log.neutral', val: 'neutral' },
+  { key: 'log.sad', val: 'sad' },
+  { key: 'log.anxious', val: 'anxious' },
+  { key: 'log.irritable', val: 'irritable' },
+  { key: 'log.energetic', val: 'energetic' },
+  { key: 'log.tired', val: 'tired' },
+  { key: 'log.stressed', val: 'stressed' },
+  { key: 'log.content', val: 'content' },
+  { key: 'log.frustrated', val: 'frustrated' },
+  { key: 'log.hopeful', val: 'hopeful' },
+];
+---
+
+<AppShell
+  title="Log"
+  activeRoute="log"
+  headerTitle={existingStatus || existingPeriod ? translate('log.edit_entry') : translate('log.new_entry')}
+  headerSubtitle={formatDateLong(logDate)}
+  showBack
+  backHref="/app"
+>
+  <div class="space-y-4 p-4">
+    {message && (
+      <Alert variant={messageType === 'error' ? 'error' : 'success'}>{message}</Alert>
+    )}
+
+    <Card>
+      <CardHeader className="pb-2">
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            id="tab-status"
+            onclick="switchTab('status')"
+            class={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+              tab === 'status' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {translate('log.daily_status_tab')}
+          </button>
+          <button
+            type="button"
+            id="tab-period"
+            onclick="switchTab('period')"
+            class={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+              tab === 'period' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {translate('log.period_tab')}
+          </button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <!-- Daily Status Form -->
+        <form method="POST" id="form-status" class={tab === 'status' ? '' : 'hidden'}>
+          <input type="hidden" name="action" value="status" />
+          <input type="hidden" name="_csrf" value={csrfToken} />
+          <div class="space-y-4">
+            <!-- Date -->
+            <div>
+              <label for="logDate-status" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.date')}</label>
+              <input
+                type="date"
+                id="logDate-status"
+                name="logDate"
+                value={logDate}
+                onchange="window.location.href='/app/log?date='+this.value"
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <p class="mt-1 text-xs text-muted-foreground">{formatDisplayDate(logDate)}</p>
+            </div>
+
+            <!-- Bleeding status -->
+            <div>
+              <label for="bleedingStatus" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.bleeding_status')}</label>
+              <select
+                id="bleedingStatus"
+                name="bleedingStatus"
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="" selected={!existingStatus?.bleeding_status}>{translate('log.select_bleeding')}</option>
+                <option value="spotting" selected={existingStatus?.bleeding_status === 'spotting'}>{translate('log.spotting')}</option>
+                <option value="light" selected={existingStatus?.bleeding_status === 'light'}>{translate('log.light')}</option>
+                <option value="medium" selected={existingStatus?.bleeding_status === 'medium'}>{translate('log.medium')}</option>
+                <option value="heavy" selected={existingStatus?.bleeding_status === 'heavy'}>{translate('log.heavy')}</option>
+              </select>
+            </div>
+
+            <!-- Pain level -->
+            <div>
+              <label for="painLevel" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.pain_level')}</label>
+              <select
+                id="painLevel"
+                name="painLevel"
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="" selected={!existingStatus?.pain_level && existingStatus?.pain_level !== 0}>{translate('log.select_pain')}</option>
+                {Array.from({ length: 11 }, (_, i) => (
+                  <option value={i} selected={existingStatus?.pain_level === i}>{i} - {painLabel(i)}</option>
+                ))}
+              </select>
+              <p class="mt-1 text-xs text-muted-foreground">{translate('log.pain_help')}</p>
+            </div>
+
+            <!-- Mood -->
+            <div>
+              <label for="mood" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.mood')}</label>
+              <select
+                id="mood"
+                name="mood"
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="" selected={!existingStatus?.mood}>{translate('log.select_mood')}</option>
+                {moods.map((m) => (
+                  <option value={m.val} selected={existingStatus?.mood?.toLowerCase() === m.val}>{translate(m.key as any)}</option>
+                ))}
+              </select>
+            </div>
+
+            <!-- Energy level -->
+            <div>
+              <label for="energyLevel" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.energy_level')}</label>
+              <select
+                id="energyLevel"
+                name="energyLevel"
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="" selected={!existingStatus?.energy_level && existingStatus?.energy_level !== 0}>{translate('log.select_energy')}</option>
+                {Array.from({ length: 11 }, (_, i) => (
+                  <option value={i} selected={existingStatus?.energy_level === i}>{i} - {energyLabel(i)}</option>
+                ))}
+              </select>
+              <p class="mt-1 text-xs text-muted-foreground">{translate('log.energy_help')}</p>
+            </div>
+
+            <!-- Notes -->
+            <div>
+              <label for="notes-status" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.notes')}</label>
+              <textarea
+                id="notes-status"
+                name="notes"
+                rows={3}
+                maxlength={500}
+                placeholder={translate('log.notes_placeholder')}
+                class="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+              >{existingStatus?.notes ?? ''}</textarea>
+            </div>
+
+            <div class="flex gap-2 pt-1">
+              <a href="/app" class="flex-1">
+                <Button type="button" variant="outline" class="w-full">{translate('log.cancel')}</Button>
+              </a>
+              <Button type="submit" class="flex-1">
+                {existingStatus ? translate('log.update') : translate('log.save')}
+              </Button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Period Form -->
+        <form method="POST" id="form-period" class={tab === 'period' ? '' : 'hidden'}>
+          <input type="hidden" name="action" value="period" />
+          <input type="hidden" name="_csrf" value={csrfToken} />
+          <div class="space-y-4">
+            <!-- Start date -->
+            <div>
+              <label for="startDate" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.start_date')}</label>
+              <input
+                type="date"
+                id="startDate"
+                name="startDate"
+                value={existingPeriod?.start_date ?? logDate}
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <p class="mt-1 text-xs text-muted-foreground">
+                {formatDisplayDate(existingPeriod?.start_date ?? logDate)}
+              </p>
+            </div>
+
+            <!-- End date -->
+            <div>
+              <label for="endDate" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.end_date')}</label>
+              <input
+                type="date"
+                id="endDate"
+                name="endDate"
+                value={existingPeriod?.end_date ?? logDate}
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <p class="mt-1 text-xs text-muted-foreground">
+                {formatDisplayDate(existingPeriod?.end_date ?? logDate)}
+              </p>
+            </div>
+
+            <!-- Flow intensity -->
+            <div>
+              <label for="flowIntensity" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.flow_intensity')}</label>
+              <select
+                id="flowIntensity"
+                name="flowIntensity"
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="" selected={!existingPeriod?.flow_intensity}>{translate('log.select_intensity')}</option>
+                <option value="light" selected={existingPeriod?.flow_intensity === 'light'}>{translate('log.light')}</option>
+                <option value="medium" selected={existingPeriod?.flow_intensity === 'medium'}>{translate('log.medium')}</option>
+                <option value="heavy" selected={existingPeriod?.flow_intensity === 'heavy'}>{translate('log.heavy')}</option>
+              </select>
+            </div>
+
+            <!-- Notes -->
+            <div>
+              <label for="notes-period" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.notes')}</label>
+              <textarea
+                id="notes-period"
+                name="notes"
+                rows={3}
+                maxlength={500}
+                placeholder={translate('log.notes_placeholder')}
+                class="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+              >{existingPeriod?.notes ?? ''}</textarea>
+            </div>
+
+            <div class="flex gap-2 pt-1">
+              <a href="/app" class="flex-1">
+                <Button type="button" variant="outline" class="w-full">{translate('log.cancel')}</Button>
+              </a>
+              <Button type="submit" class="flex-1">
+                {existingPeriod ? translate('log.update') : translate('log.save')}
+              </Button>
+            </div>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  </div>
+
+  <script is:inline>
+    function switchTab(t) {
+      document.getElementById('form-status').classList.toggle('hidden', t !== 'status');
+      document.getElementById('form-period').classList.toggle('hidden', t !== 'period');
+      document.getElementById('tab-status').classList.toggle('bg-primary/10', t === 'status');
+      document.getElementById('tab-status').classList.toggle('text-primary', t === 'status');
+      document.getElementById('tab-status').classList.toggle('text-muted-foreground', t !== 'status');
+      document.getElementById('tab-period').classList.toggle('bg-primary/10', t === 'period');
+      document.getElementById('tab-period').classList.toggle('text-primary', t === 'period');
+      document.getElementById('tab-period').classList.toggle('text-muted-foreground', t !== 'period');
+      const url = new URL(window.location);
+      url.searchParams.set('tab', t);
+      window.history.replaceState({}, '', url);
+    }
+  </script>
+</AppShell>

@@ -1,0 +1,194 @@
+---
+import AppShell from '@/layouts/AppShell.astro';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { CycleRing } from '@/components/app/cycle-ring';
+import { PhaseTimeline } from '@/components/app/phase-timeline';
+import { QuickLogCard } from '@/components/app/quick-log-card';
+import { UpcomingEvents } from '@/components/app/upcoming-events';
+import { findLatestPrediction, findPeriodLogs } from '@/lib/db/client';
+import { listDailyStatusLogs } from '@/lib/modules/cycles/repository';
+import { todayIso, daysBetween } from '@/lib/utils/dates';
+import { translate } from '@/lib/i18n/use-translation';
+
+export const prerender = false;
+
+const user = Astro.locals.user!;
+const prediction = await findLatestPrediction(user.id);
+const periodLogs = await findPeriodLogs(user.id);
+const dailyLogs = await listDailyStatusLogs(user.id);
+
+const lastPeriod = periodLogs[periodLogs.length - 1];
+const today = todayIso();
+
+// Cycle day calculation
+let cycleDay = 0;
+if (lastPeriod) {
+  cycleDay = Math.max(1, daysBetween(lastPeriod.start_date, today) + 1);
+}
+
+// Check if currently in period using actual period log end_date
+let isInPeriod = false;
+let periodDay: number | null = null;
+if (lastPeriod) {
+  const daysSinceStart = daysBetween(lastPeriod.start_date, today);
+  isInPeriod = daysSinceStart >= 0 && today <= lastPeriod.end_date;
+  if (isInPeriod) {
+    periodDay = daysSinceStart + 1;
+  }
+}
+
+// Average cycle length
+let avgCycleLength: number | null = null;
+if (periodLogs.length >= 2) {
+  const totalCycleLen = daysBetween(periodLogs[0].start_date, lastPeriod.start_date);
+  avgCycleLength = Math.round(totalCycleLen / (periodLogs.length - 1));
+}
+
+// Today's status
+const recentStatus = dailyLogs[0];
+const hasLoggedToday = recentStatus?.log_date === today;
+
+// Greeting based on time of day
+const hour = new Date().getHours();
+let greetingKey = 'home.good_morning';
+if (hour >= 12 && hour < 17) greetingKey = 'home.good_afternoon';
+else if (hour >= 17) greetingKey = 'home.good_evening';
+
+const displayName = user.email?.split('@')[0] ?? 'there';
+---
+
+<AppShell title="Home" activeRoute="home">
+  <div class="space-y-4 p-4 pb-6">
+
+    {/* ===== Cycle Ring Hero ===== */}
+    {cycleDay > 0 ? (
+      <div class="rounded-2xl border border-primary/10 bg-gradient-to-br from-primary/5 via-card to-secondary/20 shadow-sm">
+        <div class="py-5 px-4 flex flex-col items-center">
+          <CycleRing
+            cycleDay={cycleDay}
+            avgCycleLength={avgCycleLength}
+            nextPeriodDate={prediction?.predicted_next_period_date ?? null}
+            isInPeriod={isInPeriod}
+            periodDay={periodDay}
+          />
+        </div>
+      </div>
+    ) : (
+      <div class="rounded-2xl border border-primary/10 bg-gradient-to-br from-primary/5 via-card to-secondary/20 shadow-sm">
+        <div class="py-8 px-4 flex flex-col items-center text-center">
+          <span class="text-4xl mb-3">🌸</span>
+          <p class="text-base font-semibold text-foreground mb-1">
+            {translate(greetingKey as any)}, {displayName}!
+          </p>
+          <p class="text-sm text-muted-foreground max-w-xs">
+            {translate('home.log_first_period')}
+          </p>
+        </div>
+      </div>
+    )}
+
+    {/* ===== Quick Actions ===== */}
+    <div class="grid grid-cols-2 gap-3">
+      <a href="/app/log?tab=period" class="block">
+        <div class="flex items-center justify-center gap-2.5 h-14 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm shadow-md shadow-primary/20 hover:bg-primary/90 active:scale-[0.98] transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          {translate('home.log_period')}
+        </div>
+      </a>
+      <a href="/app/log?tab=status" class="block">
+        <div class="flex items-center justify-center gap-2.5 h-14 rounded-2xl bg-secondary text-secondary-foreground font-semibold text-sm shadow-sm hover:bg-secondary/80 active:scale-[0.98] transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>
+          {translate('home.daily_status')}
+        </div>
+      </a>
+    </div>
+
+    {/* ===== Phase Timeline ===== */}
+    {cycleDay > 0 && (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">{translate('home.your_cycle')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PhaseTimeline
+            avgCycleLength={avgCycleLength}
+            nextPeriodDate={prediction?.predicted_next_period_date ?? null}
+            lastPeriodStart={lastPeriod!.start_date}
+            avgPeriodLength={5}
+            predictedOvulationDate={prediction?.predicted_ovulation_date ?? null}
+            fertileStart={prediction?.predicted_fertile_start ?? null}
+            fertileEnd={prediction?.predicted_fertile_end ?? null}
+          />
+        </CardContent>
+      </Card>
+    )}
+
+    {/* ===== Today's Log ===== */}
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm">{translate('home.today')}</CardTitle>
+          <span className="text-xs text-muted-foreground">
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          </span>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <QuickLogCard hasLoggedToday={hasLoggedToday} todayStatus={recentStatus ?? null} />
+        {hasLoggedToday && (
+          <a href="/app/log" className="mt-3 block">
+            <Button variant="outline" className="w-full" size="sm">
+              {translate('home.update_today')}
+            </Button>
+          </a>
+        )}
+      </CardContent>
+    </Card>
+
+    {/* ===== Upcoming Events ===== */}
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm">{translate('home.upcoming')}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <UpcomingEvents
+          nextPeriodDate={prediction?.predicted_next_period_date ?? null}
+          predictedOvulationDate={prediction?.predicted_ovulation_date ?? null}
+          fertileStart={prediction?.predicted_fertile_start ?? null}
+          fertileEnd={prediction?.predicted_fertile_end ?? null}
+          confidenceBand={prediction?.confidence_band ?? null}
+          client:load
+        />
+      </CardContent>
+    </Card>
+
+    {/* ===== Stats ===== */}
+    {periodLogs.length > 0 && (
+      <div class="grid grid-cols-3 gap-2.5">
+        <div class="flex flex-col items-center justify-center rounded-2xl bg-card border border-border py-4 px-2 shadow-sm">
+          <div class="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center mb-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>
+          </div>
+          <span class="text-xl font-bold text-primary">{periodLogs.length}</span>
+          <span class="text-[10px] text-muted-foreground text-center leading-tight mt-0.5">{translate('home.periods_tracked')}</span>
+        </div>
+        <div class="flex flex-col items-center justify-center rounded-2xl bg-card border border-border py-4 px-2 shadow-sm">
+          <div class="h-8 w-8 rounded-full bg-accent/20 flex items-center justify-center mb-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-accent"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <span class="text-xl font-bold text-foreground">{avgCycleLength ?? '—'}</span>
+          <span class="text-[10px] text-muted-foreground text-center leading-tight mt-0.5">{translate('home.avg_cycle')}</span>
+        </div>
+        <div class="flex flex-col items-center justify-center rounded-2xl bg-card border border-border py-4 px-2 shadow-sm">
+          <div class="h-8 w-8 rounded-full bg-secondary flex items-center justify-center mb-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-secondary-foreground"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <span class="text-xl font-bold text-foreground">{dailyLogs.length}</span>
+          <span class="text-[10px] text-muted-foreground text-center leading-tight mt-0.5">{translate('home.daily_logs')}</span>
+        </div>
+      </div>
+    )}
+
+  </div>
+</AppShell>

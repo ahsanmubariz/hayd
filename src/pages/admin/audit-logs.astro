@@ -1,0 +1,18 @@
+---
+import AdminShell from '@/layouts/AdminShell.astro';
+import { AuditTable } from '@/components/admin/audit-table';
+import { listAuditLogs } from '@/lib/modules/audit/service';
+
+export const prerender = false;
+
+const logs = await listAuditLogs(100);
+---
+
+<AdminShell title="Audit logs" activeRoute="audit">
+  <div class="space-y-4">
+    <p class="text-sm text-muted-foreground">
+      Append-only record of admin actions. Health note contents are never logged here.
+    </p>
+    <AuditTable logs={logs} />
+  </div>
+</AdminShell>

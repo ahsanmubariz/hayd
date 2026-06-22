@@ -1,0 +1,146 @@
+---
+import AppShell from '@/layouts/AppShell.astro';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Alert } from '@/components/ui/alert';
+import { PrivacyCard } from '@/components/app/privacy-card';
+import { findProfile } from '@/lib/db/client';
+import { updateUserProfile, changePassword } from '@/lib/modules/users/service';
+import { translate } from '@/lib/i18n/use-translation';
+import { getCsrfToken, validateCsrf } from '@/lib/auth/csrf';
+
+export const prerender = false;
+
+const csrfToken = getCsrfToken(Astro);
+
+const user = Astro.locals.user!;
+const profile = await findProfile(user.id);
+
+let success = '';
+let errors: Record<string, string> = {};
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  if (!validateCsrf(Astro, Astro.request, formData)) {
+    errors = { form: 'Invalid CSRF token' };
+  } else {
+    const action = String(formData.get('action') ?? '');
+
+    try {
+      if (action === 'profile') {
+        await updateUserProfile(user.id, {
+          displayName: String(formData.get('displayName') ?? ''),
+          timezone: String(formData.get('timezone') ?? 'Asia/Jakarta'),
+        });
+        success = translate('profile.profile_updated');
+      } else if (action === 'password') {
+        await changePassword(user.id, {
+          currentPassword: String(formData.get('currentPassword') ?? ''),
+          newPassword: String(formData.get('newPassword') ?? ''),
+        });
+        success = translate('profile.password_updated');
+      }
+    } catch (err) {
+      if (err && typeof err === 'object' && 'fieldErrors' in err) {
+        errors = (err as { fieldErrors: Record<string, string> }).fieldErrors;
+      }
+    }
+  }
+}
+---
+
+<AppShell title="Profile" activeRoute="profile" headerTitle={translate('nav.profile')} headerSubtitle={translate('profile.manage_account')}>
+  <div class="space-y-4 p-4">
+    {success && <Alert variant="success">{success}</Alert>}
+
+    {/* Account Info Card */}
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
+            {user.email.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <p className="font-medium text-foreground">{profile?.display_name || user.email.split('@')[0]}</p>
+            <p className="text-xs text-muted-foreground">{user.email}</p>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary capitalize">{user.role}</span>
+          <span>·</span>
+          <span>{translate('profile.member_since')} {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+        </div>
+      </CardContent>
+    </Card>
+
+    {/* Profile Form */}
+    <form method="POST">
+      <input type="hidden" name="action" value="profile" />
+      <input type="hidden" name="_csrf" value={csrfToken} />
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">{translate('profile.personal_info')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Input
+            name="displayName"
+            label={translate('profile.display_name')}
+            placeholder={translate('profile.display_name_placeholder')}
+            defaultValue={profile?.display_name ?? ''}
+            error={errors.displayName}
+          />
+          <Input
+            name="timezone"
+            label={translate('profile.timezone')}
+            defaultValue={profile?.timezone ?? 'Asia/Jakarta'}
+            error={errors.timezone}
+          />
+          <Button type="submit">{translate('profile.save_profile')}</Button>
+        </CardContent>
+      </Card>
+    </form>
+
+    {/* Password Form */}
+    <form method="POST">
+      <input type="hidden" name="action" value="password" />
+      <input type="hidden" name="_csrf" value={csrfToken} />
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">{translate('profile.change_password')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Input
+            type="password"
+            name="currentPassword"
+            label={translate('profile.current_password')}
+            autoComplete="current-password"
+            error={errors.currentPassword}
+          />
+          <Input
+            type="password"
+            name="newPassword"
+            label={translate('profile.new_password')}
+            autoComplete="new-password"
+            error={errors.newPassword}
+          />
+          <Button type="submit" variant="outline">{translate('profile.update_password')}</Button>
+        </CardContent>
+      </Card>
+    </form>
+
+    {/* Privacy */}
+    <PrivacyCard client:load />
+
+    {/* Logout */}
+    <Card>
+      <CardContent className="py-3">
+        <a href="/logout">
+          <Button variant="destructive" className="w-full" size="sm">{translate('profile.sign_out')}</Button>
+        </a>
+      </CardContent>
+    </Card>
+  </div>
+</AppShell>

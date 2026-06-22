@@ -1,0 +1,80 @@
+---
+import AppShell from '@/layouts/AppShell.astro';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { PredictionExplainer } from '@/components/app/prediction-explainer';
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { findLatestPrediction, findPeriodLogs } from '@/lib/db/client';
+import { recomputeAndStore } from '@/lib/modules/predictions/service';
+import { translate } from '@/lib/i18n/use-translation';
+import { getCsrfToken, validateCsrf } from '@/lib/auth/csrf';
+
+export const prerender = false;
+
+const csrfToken = getCsrfToken(Astro);
+
+const user = Astro.locals.user!;
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  if (!validateCsrf(Astro, Astro.request, formData)) {
+    return Astro.redirect('/app/predictions');
+  }
+  await recomputeAndStore(user.id);
+  return Astro.redirect('/app/predictions');
+}
+
+const prediction = await findLatestPrediction(user.id);
+const periodLogs = await findPeriodLogs(user.id);
+---
+
+<AppShell title="Predictions" activeRoute="predictions" headerTitle={translate('nav.predictions')} headerSubtitle={translate('predictions.based_on')}>
+  <div class="space-y-4 p-4">
+    {periodLogs.length === 0 ? (
+      <Alert variant="info" title={translate('predictions.no_data')}>
+        {translate('predictions.no_data_desc')}
+      </Alert>
+    ) : periodLogs.length < 3 ? (
+      <Alert variant="warning" title={translate('predictions.limited_data')}>
+        {translate('predictions.limited_data_desc', periodLogs.length)}
+      </Alert>
+    ) : null}
+
+    {prediction ? (
+      <PredictionExplainer
+        predictedNextPeriodDate={prediction.predicted_next_period_date}
+        predictedOvulationDate={prediction.predicted_ovulation_date ?? undefined}
+        predictedFertileStart={prediction.predicted_fertile_start ?? undefined}
+        predictedFertileEnd={prediction.predicted_fertile_end ?? undefined}
+        averageCycleLengthUsed={prediction.average_cycle_length_used}
+        averagePeriodLengthUsed={prediction.average_period_length_used}
+        cyclesConsidered={prediction.cycles_considered}
+        confidenceBand={prediction.confidence_band}
+        confidenceReason={prediction.confidence_reason}
+        algorithmVersion={prediction.algorithm_version}
+        client:load
+      />
+    ) : (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <p className="text-4xl mb-3">🔮</p>
+          <p className="text-sm font-medium text-foreground mb-1">{translate('predictions.no_prediction')}</p>
+          <p className="text-xs text-muted-foreground">{translate('predictions.log_to_start')}</p>
+        </CardContent>
+      </Card>
+    )}
+
+    <Card className="border-dashed">
+      <p className="text-xs text-muted-foreground text-center">
+        {translate('predictions.disclaimer')}
+      </p>
+    </Card>
+
+    {periodLogs.length > 0 && (
+      <form method="POST">
+        <input type="hidden" name="_csrf" value={csrfToken} />
+        <Button type="submit" className="w-full">{translate('predictions.recompute')}</Button>
+      </form>
+    )}
+  </div>
+</AppShell>

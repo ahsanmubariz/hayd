@@ -1,5 +1,4 @@
 import { useTranslation } from '@/lib/i18n/use-translation';
-import type { Lang } from '@/lib/i18n/translations';
 
 export function LangToggle() {
   const { lang, setLang, t } = useTranslation();

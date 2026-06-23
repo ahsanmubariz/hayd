@@ -1,11 +1,14 @@
 ---
-import { revokeSession } from '@/lib/auth/session';
+import { revokeSession, verifySessionId } from '@/lib/auth/session';
 
 export const prerender = false;
 
-const sessionId = Astro.cookies.get('hayd_session')?.value;
-if (sessionId) {
-  await revokeSession(sessionId);
+const signedSessionId = Astro.cookies.get('hayd_session')?.value;
+if (signedSessionId) {
+  const sessionId = await verifySessionId(signedSessionId);
+  if (sessionId) {
+    await revokeSession(sessionId);
+  }
 }
 Astro.cookies.delete('hayd_session', {
   path: '/',

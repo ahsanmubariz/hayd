@@ -100,3 +100,13 @@ export interface AdminAuditLog {
   metadata_json: string | null;
   created_at: string;
 }
+
+export interface UserPasskey {
+  id: string;
+  user_id: string;
+  public_key: string;
+  counter: number;
+  transports: string | null;
+  created_at: string;
+}
+

@@ -1,6 +1,6 @@
 import '@/lib/db/d1-shim';
 import { defineMiddleware } from 'astro/middleware';
-import { getSession } from '@/lib/auth/session';
+import { getSession, verifySessionId } from '@/lib/auth/session';
 
 const PUBLIC_PATHS = [
   '/login',
@@ -28,8 +28,17 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
-  const sessionId = cookies.get('hayd_session')?.value;
+  const signedSessionId = cookies.get('hayd_session')?.value;
+  if (!signedSessionId) {
+    if (pathname.startsWith('/app') || pathname.startsWith('/admin')) {
+      return Response.redirect(new URL('/login', url), 302);
+    }
+    return next();
+  }
+
+  const sessionId = await verifySessionId(signedSessionId);
   if (!sessionId) {
+    cookies.delete('hayd_session', { path: '/' });
     if (pathname.startsWith('/app') || pathname.startsWith('/admin')) {
       return Response.redirect(new URL('/login', url), 302);
     }

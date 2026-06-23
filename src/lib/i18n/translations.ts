@@ -226,7 +226,7 @@ export type TranslationKey = keyof typeof translations;
 export function t(key: TranslationKey, lang: Lang, ...args: (string | number)[]): string {
   const entry = translations[key];
   if (!entry) return key;
-  let text = entry[lang];
+  let text: string = entry[lang];
   // Simple %d / %s replacement
   if (args.length > 0) {
     let argIndex = 0;

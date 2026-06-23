@@ -1,7 +1,50 @@
 import { getDb } from '@/lib/db/client';
 import type { Session } from '@/lib/db/schema';
 
-const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 90; // 90 days
+
+async function getHmacKey(): Promise<CryptoKey> {
+  const secret = import.meta.env.SESSION_SECRET || 'a-very-long-and-secure-fallback-secret-key-for-development-change-in-prod';
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secret);
+  return crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign', 'verify']
+  );
+}
+
+export async function signSessionId(sessionId: string): Promise<string> {
+  const key = await getHmacKey();
+  const encoder = new TextEncoder();
+  const data = encoder.encode(sessionId);
+  const signature = await crypto.subtle.sign('HMAC', key, data);
+  const sigHex = Array.from(new Uint8Array(signature))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+  return `${sessionId}.${sigHex}`;
+}
+
+export async function verifySessionId(signedValue: string): Promise<string | null> {
+  if (!signedValue) return null;
+  const parts = signedValue.split('.');
+  if (parts.length !== 2) return null;
+  const [sessionId, sigHex] = parts;
+  if (!sessionId || !sigHex || !/^[0-9a-fA-F]+$/.test(sigHex)) return null;
+
+  try {
+    const key = await getHmacKey();
+    const encoder = new TextEncoder();
+    const data = encoder.encode(sessionId);
+    const sigBytes = new Uint8Array(sigHex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
+    const isValid = await crypto.subtle.verify('HMAC', key, sigBytes, data);
+    return isValid ? sessionId : null;
+  } catch {
+    return null;
+  }
+}
 
 function generateId(): string {
   const bytes = new Uint8Array(32);
@@ -18,6 +61,7 @@ async function sha256(value: string): Promise<string> {
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
+
 
 export async function createSession(
   userId: string,

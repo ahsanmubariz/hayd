@@ -7,6 +7,7 @@ import type {
   DailyStatusLog,
   PredictionSnapshot,
   AdminAuditLog,
+  UserPasskey,
 } from './schema';
 
 type D1Database = {
@@ -159,3 +160,56 @@ export async function findAuditLogs(limit = 50): Promise<AdminAuditLog[]> {
     .all<AdminAuditLog>();
   return result.results;
 }
+
+export async function findPasskeyById(id: string): Promise<UserPasskey | null> {
+  const db = getDb();
+  return db
+    .prepare('SELECT * FROM user_passkeys WHERE id = ?')
+    .bind(id)
+    .first<UserPasskey>();
+}
+
+export async function findPasskeysByUser(userId: string): Promise<UserPasskey[]> {
+  const db = getDb();
+  const result = await db
+    .prepare('SELECT * FROM user_passkeys WHERE user_id = ? ORDER BY created_at DESC')
+    .bind(userId)
+    .all<UserPasskey>();
+  return result.results;
+}
+
+export async function createPasskey(passkey: Omit<UserPasskey, 'created_at'>): Promise<void> {
+  const db = getDb();
+  const now = new Date().toISOString();
+  await db
+    .prepare(
+      `INSERT INTO user_passkeys (id, user_id, public_key, counter, transports, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`
+    )
+    .bind(
+      passkey.id,
+      passkey.user_id,
+      passkey.public_key,
+      passkey.counter,
+      passkey.transports,
+      now
+    )
+    .run();
+}
+
+export async function updatePasskeyCounter(id: string, counter: number): Promise<void> {
+  const db = getDb();
+  await db
+    .prepare('UPDATE user_passkeys SET counter = ? WHERE id = ?')
+    .bind(counter, id)
+    .run();
+}
+
+export async function deletePasskey(id: string): Promise<void> {
+  const db = getDb();
+  await db
+    .prepare('DELETE FROM user_passkeys WHERE id = ?')
+    .bind(id)
+    .run();
+}
+

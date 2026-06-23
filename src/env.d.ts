@@ -12,6 +12,11 @@ declare namespace App {
       userId: string;
       expiresAt: string;
     };
+    runtime?: {
+      env: {
+        DB: any;
+      };
+    };
   }
 }
 

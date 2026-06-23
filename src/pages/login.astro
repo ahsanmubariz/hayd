@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { authenticateUser } from '@/lib/modules/users/service';
-import { createSession } from '@/lib/auth/session';
+import { createSession, signSessionId } from '@/lib/auth/session';
 import { getCsrfToken, validateCsrf } from '@/lib/auth/csrf';
 import { checkRateLimit, resetRateLimit } from '@/lib/auth/rate-limit';
 
@@ -39,12 +39,13 @@ if (Astro.request.method === 'POST') {
           // Reset rate limit on successful login
           await resetRateLimit(Astro.request, 'login');
           const session = await createSession(user.id);
-          Astro.cookies.set('hayd_session', session.id, {
+          const signedSessionId = await signSessionId(session.id);
+          Astro.cookies.set('hayd_session', signedSessionId, {
             httpOnly: true,
             sameSite: 'lax',
             secure: import.meta.env.PROD,
             path: '/',
-            maxAge: 60 * 60 * 24 * 7,
+            maxAge: 60 * 60 * 24 * 90,
           });
           return Astro.redirect(user.role === 'admin' ? '/admin' : '/app');
         } catch {
@@ -63,5 +64,82 @@ if (Astro.request.method === 'POST') {
     <Input type="email" name="email" label="Email" autoComplete="email" required error={errors.email} />
     <Input type="password" name="password" label="Password" autoComplete="current-password" required error={errors.password} />
     <Button type="submit" className="w-full">Sign in</Button>
+
+    <div class="relative my-4 flex items-center justify-center">
+      <hr class="w-full border-border" />
+      <span class="absolute bg-card px-2 text-xs text-muted-foreground">or</span>
+    </div>
+
+    <Button id="passkey-login-btn" type="button" variant="outline" className="w-full">
+      Sign in with Passkey
+    </Button>
+    <div id="passkey-error" class="hidden text-xs text-destructive text-center mt-2"></div>
   </form>
 </AuthLayout>
+
+<script>
+  import { startAuthentication } from '@simplewebauthn/browser';
+
+  const passkeyBtn = document.getElementById('passkey-login-btn');
+  const emailInput = document.getElementById('email') as HTMLInputElement | null;
+  const errorDiv = document.getElementById('passkey-error');
+
+  if (passkeyBtn) {
+    passkeyBtn.addEventListener('click', async () => {
+      if (errorDiv) {
+        errorDiv.classList.add('hidden');
+        errorDiv.textContent = '';
+      }
+      passkeyBtn.disabled = true;
+      const originalText = passkeyBtn.textContent;
+      passkeyBtn.textContent = 'Verifying...';
+
+      try {
+        const email = emailInput?.value || '';
+
+        // 1. Fetch options
+        const optionsRes = await fetch('/api/passkey/login/options', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email }),
+        });
+
+        if (!optionsRes.ok) {
+          throw new Error('Failed to fetch authentication options');
+        }
+        const options = await optionsRes.json();
+
+        // 2. Start authentication in browser
+        const credential = await startAuthentication({ optionsJSON: options });
+
+        // 3. Verify on server
+        const verifyRes = await fetch('/api/passkey/login/verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(credential),
+        });
+
+        const verifyResult = await verifyRes.json();
+        if (!verifyRes.ok || !verifyResult.verified) {
+          throw new Error(verifyResult.error || 'Verification failed');
+        }
+
+        // 4. Redirect on success
+        window.location.href = verifyResult.role === 'admin' ? '/admin' : '/app';
+      } catch (err: any) {
+        console.error(err);
+        if (errorDiv) {
+          errorDiv.textContent = err.message || 'An error occurred during passkey sign in.';
+          errorDiv.classList.remove('hidden');
+        }
+        passkeyBtn.disabled = false;
+        passkeyBtn.textContent = originalText;
+      }
+    });
+  }
+</script>
+

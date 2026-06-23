@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { PrivacyCard } from '@/components/app/privacy-card';
-import { findProfile } from '@/lib/db/client';
+import { findProfile, findPasskeysByUser, findPasskeyById, deletePasskey } from '@/lib/db/client';
 import { updateUserProfile, changePassword } from '@/lib/modules/users/service';
 import { translate } from '@/lib/i18n/use-translation';
 import { getCsrfToken, validateCsrf } from '@/lib/auth/csrf';
@@ -16,6 +16,7 @@ const csrfToken = getCsrfToken(Astro);
 
 const user = Astro.locals.user!;
 const profile = await findProfile(user.id);
+const passkeys = await findPasskeysByUser(user.id);
 
 let success = '';
 let errors: Record<string, string> = {};
@@ -40,6 +41,15 @@ if (Astro.request.method === 'POST') {
           newPassword: String(formData.get('newPassword') ?? ''),
         });
         success = translate('profile.password_updated');
+      } else if (action === 'delete-passkey') {
+        const passkeyId = String(formData.get('passkeyId') ?? '');
+        if (passkeyId) {
+          const pk = await findPasskeyById(passkeyId);
+          if (pk && pk.user_id === user.id) {
+            await deletePasskey(passkeyId);
+            success = 'Passkey deleted successfully';
+          }
+        }
       }
     } catch (err) {
       if (err && typeof err === 'object' && 'fieldErrors' in err) {
@@ -131,6 +141,51 @@ if (Astro.request.method === 'POST') {
       </Card>
     </form>
 
+    {/* Passkeys Card */}
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm">Passkeys (WebAuthn)</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-xs text-muted-foreground">
+          Passkeys allow you to sign in securely using biometrics (like Touch ID or Face ID), a PIN, or a security key, without typing a password.
+        </p>
+
+        {passkeys.length > 0 ? (
+          <div class="divide-y divide-border rounded-md border border-border bg-card text-card-foreground">
+            {passkeys.map((pk) => (
+              <div class="flex items-center justify-between p-3 text-xs">
+                <div>
+                  <p class="font-medium text-foreground">Passkey</p>
+                  <p class="text-muted-foreground text-[10px] font-mono">
+                    ID: {pk.id.substring(0, 8)}...{pk.id.substring(pk.id.length - 8)}
+                  </p>
+                  <p class="text-[10px] text-muted-foreground">
+                    Created: {new Date(pk.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <form method="POST" style="display:inline">
+                  <input type="hidden" name="action" value="delete-passkey" />
+                  <input type="hidden" name="passkeyId" value={pk.id} />
+                  <input type="hidden" name="_csrf" value={csrfToken} />
+                  <Button type="submit" variant="destructive" size="sm" className="h-7 px-2.5 text-[10px]">
+                    Delete
+                  </Button>
+                </form>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground italic">No passkeys registered yet.</p>
+        )}
+
+        <Button id="register-passkey-btn" type="button" variant="outline" className="w-full text-xs">
+          Register New Passkey
+        </Button>
+        <div id="passkey-error" class="hidden text-xs text-destructive mt-2"></div>
+      </CardContent>
+    </Card>
+
     {/* Privacy */}
     <PrivacyCard client:load />
 
@@ -144,3 +199,59 @@ if (Astro.request.method === 'POST') {
     </Card>
   </div>
 </AppShell>
+
+<script>
+  import { startRegistration } from '@simplewebauthn/browser';
+
+  const registerBtn = document.getElementById('register-passkey-btn');
+  const errorDiv = document.getElementById('passkey-error');
+
+  if (registerBtn) {
+    registerBtn.addEventListener('click', async () => {
+      if (errorDiv) {
+        errorDiv.classList.add('hidden');
+        errorDiv.textContent = '';
+      }
+      registerBtn.disabled = true;
+      const originalText = registerBtn.textContent;
+      registerBtn.textContent = 'Registering...';
+
+      try {
+        // 1. Get options from server
+        const optionsRes = await fetch('/api/passkey/register/options');
+        if (!optionsRes.ok) {
+          throw new Error('Failed to get registration options');
+        }
+        const options = await optionsRes.json();
+
+        // 2. Start registration in browser
+        const credential = await startRegistration({ optionsJSON: options });
+
+        // 3. Verify on server
+        const verifyRes = await fetch('/api/passkey/register/verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(credential),
+        });
+
+        const verifyResult = await verifyRes.json();
+        if (!verifyRes.ok || !verifyResult.verified) {
+          throw new Error(verifyResult.error || 'Verification failed');
+        }
+
+        // 4. Reload page on success
+        window.location.reload();
+      } catch (err: any) {
+        console.error(err);
+        if (errorDiv) {
+          errorDiv.textContent = err.message || 'An error occurred during passkey registration.';
+          errorDiv.classList.remove('hidden');
+        }
+        registerBtn.disabled = false;
+        registerBtn.textContent = originalText;
+      }
+    });
+  }
+</script>

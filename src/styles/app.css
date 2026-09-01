@@ -1,53 +1,139 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #fbf7f4;
-  --color-foreground: #3a2e39;
+  --color-background: #faf7f2;
+  --color-foreground: #1c1917;
   --color-card: #ffffff;
-  --color-card-foreground: #3a2e39;
-  --color-primary: #c9647a;
+  --color-card-foreground: #1c1917;
+  
+  --color-primary: #d94a3d;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #e9d7d8;
-  --color-secondary-foreground: #5a3a47;
-  --color-accent: #d8a7b2;
-  --color-accent-foreground: #3a2e39;
-  --color-destructive: #c14c4c;
+  
+  --color-secondary: #f0eae1;
+  --color-secondary-foreground: #44403c;
+  
+  --color-accent: #e8927c;
+  --color-accent-foreground: #1c1917;
+  
+  --color-sage: #4e8771;
+  --color-sage-foreground: #ffffff;
+  
+  --color-amber: #d48b38;
+  --color-amber-foreground: #ffffff;
+  
+  --color-destructive: #b91c1c;
   --color-destructive-foreground: #ffffff;
-  --color-muted: #f1e5e7;
-  --color-muted-foreground: #7a6570;
-  --color-border: #e9d7d8;
-  --color-ring: #c9647a;
+  
+  --color-muted: #f3ede4;
+  --color-muted-foreground: #78716c;
+  
+  --color-border: #eae3d8;
+  --color-ring: #d94a3d;
+  
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 }
 
 :root {
   color-scheme: light;
+  --glaze-sheen: rgba(255, 255, 255, 0.75);
+  --shadow-ceramic: 0 4px 20px -2px rgba(28, 25, 23, 0.05), 0 2px 6px -1px rgba(28, 25, 23, 0.03);
+  --shadow-dish: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 3px rgba(28, 25, 23, 0.04);
 }
 
 .dark {
   color-scheme: dark;
-  --color-background: #1c1418;
-  --color-foreground: #f1e5e7;
-  --color-card: #2a1f24;
-  --color-card-foreground: #f1e5e7;
-  --color-primary: #d88496;
-  --color-primary-foreground: #1c1418;
-  --color-secondary: #3a2a31;
-  --color-secondary-foreground: #f1e5e7;
-  --color-accent: #c9647a;
-  --color-accent-foreground: #ffffff;
-  --color-destructive: #d66b6b;
+  --color-background: #131211;
+  --color-foreground: #ede8e1;
+  --color-card: #1c1a18;
+  --color-card-foreground: #ede8e1;
+  
+  --color-primary: #e86356;
+  --color-primary-foreground: #131211;
+  
+  --color-secondary: #272421;
+  --color-secondary-foreground: #ede8e1;
+  
+  --color-accent: #e09384;
+  --color-accent-foreground: #131211;
+  
+  --color-sage: #64a38b;
+  --color-sage-foreground: #131211;
+  
+  --color-amber: #e29f4f;
+  --color-amber-foreground: #131211;
+  
+  --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
-  --color-muted: #2a1f24;
-  --color-muted-foreground: #a8949c;
-  --color-border: #3a2a31;
-  --color-ring: #d88496;
+  
+  --color-muted: #24211e;
+  --color-muted-foreground: #a8a29e;
+  
+  --color-border: #2c2925;
+  --color-ring: #e86356;
+  
+  --glaze-sheen: rgba(255, 255, 255, 0.04);
+  --shadow-ceramic: 0 4px 24px -2px rgba(0, 0, 0, 0.35), 0 2px 8px -1px rgba(0, 0, 0, 0.25);
+  --shadow-dish: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 html, body {
   background-color: var(--color-background);
   color: var(--color-foreground);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   min-height: 100vh;
+  letter-spacing: -0.015em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Selection & Focus */
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+
+/* Subtle Ceramic Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted-foreground);
+}
+
+/* Ceramic Texture & Glow helpers */
+.ceramic-card {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-ceramic);
+  position: relative;
+  overflow: hidden;
+}
+
+.ceramic-dish {
+  background: linear-gradient(180deg, var(--glaze-sheen) 0%, transparent 100%), var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-dish);
+}
+
+.phase-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 @media (prefers-reduced-motion: reduce) {

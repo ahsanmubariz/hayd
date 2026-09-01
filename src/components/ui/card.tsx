@@ -1,33 +1,58 @@
-import { type HTMLAttributes, forwardRef } from 'react';
+import type { HTMLAttributes } from 'react';
 import { clsx } from 'clsx';
 
-export const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(function Card(
-  { className, ...rest },
-  ref,
-) {
+export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      ref={ref}
-      className={clsx('rounded-2xl border border-border bg-card p-4 shadow-sm', className)}
-      {...rest}
+      className={clsx(
+        'rounded-2xl border border-border bg-card text-card-foreground',
+        'shadow-sm shadow-stone-900/5 transition-all duration-200',
+        className,
+      )}
+      {...props}
     />
   );
-});
+}
 
-export const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  function CardHeader({ className, ...rest }, ref) {
-    return <div ref={ref} className={clsx('mb-3', className)} {...rest} />;
-  },
-);
+export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={clsx('flex flex-col space-y-1 p-5 pb-3', className)}
+      {...props}
+    />
+  );
+}
 
-export const CardTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadingElement>>(
-  function CardTitle({ className, ...rest }, ref) {
-    return <h3 ref={ref} className={clsx('text-base font-semibold', className)} {...rest} />;
-  },
-);
+export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <h3
+      className={clsx(
+        'font-medium text-foreground tracking-tight text-base',
+        className,
+      )}
+      {...props}
+    />
+  );
+}
 
-export const CardContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  function CardContent({ className, ...rest }, ref) {
-    return <div ref={ref} className={clsx('text-sm text-muted-foreground', className)} {...rest} />;
-  },
-);
+export function CardDescription({ className, ...props }: HTMLAttributes<HTMLParagraphElement>) {
+  return (
+    <p
+      className={clsx('text-xs text-muted-foreground leading-relaxed', className)}
+      {...props}
+    />
+  );
+}
+
+export function CardContent({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={clsx('p-5 pt-0', className)} {...props} />;
+}
+
+export function CardFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={clsx('flex items-center p-5 pt-0', className)}
+      {...props}
+    />
+  );
+}

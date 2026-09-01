@@ -5,7 +5,7 @@ import { BottomNav } from '@/components/ui/bottom-nav';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { LangToggle } from '@/components/ui/lang-toggle';
 import { PwaPrompt } from '@/components/app/pwa-prompt';
-import { translate, setLang, getLang } from '@/lib/i18n/use-translation';
+import { translate, setLang } from '@/lib/i18n/use-translation';
 import type { Lang } from '@/lib/i18n/translations';
 
 interface Props {
@@ -27,11 +27,11 @@ if (cookieLang === 'id' || cookieLang === 'en') {
 
 const user = Astro.locals.user;
 const navItems = [
-  { href: '/app', label: translate('nav.home'), icon: '🏠', active: activeRoute === 'home' },
-  { href: '/app/calendar', label: translate('nav.calendar'), icon: '📅', active: activeRoute === 'calendar' },
-  { href: '/app/log', label: translate('nav.log'), icon: '✏️', active: activeRoute === 'log' },
-  { href: '/app/predictions', label: translate('nav.predictions'), icon: '📊', active: activeRoute === 'predictions' },
-  { href: '/app/profile', label: translate('nav.profile'), icon: '👤', active: activeRoute === 'profile' },
+  { href: '/app', label: translate('nav.home'), icon: 'home', active: activeRoute === 'home' },
+  { href: '/app/calendar', label: translate('nav.calendar'), icon: 'calendar', active: activeRoute === 'calendar' },
+  { href: '/app/log', label: translate('nav.log'), icon: 'log', active: activeRoute === 'log' },
+  { href: '/app/predictions', label: translate('nav.predictions'), icon: 'predictions', active: activeRoute === 'predictions' },
+  { href: '/app/profile', label: translate('nav.profile'), icon: 'profile', active: activeRoute === 'profile' },
 ];
 ---
 
@@ -56,8 +56,16 @@ const navItems = [
       })();
     </script>
   </head>
-  <body class="min-h-screen bg-background text-foreground antialiased">
-    <div class="pb-20">
+  <body class="min-h-screen bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground">
+    <!--
+    THESIS: A private, dignified sanctuary for cycle tracking that refuses generic pink gamification and sterile clinical spreadsheets.
+    OWN-WORLD: Glazed ceramic porcelain and smoked obsidian tea-room surfaces, celadon sage, earthy vermilion lacquer, and fine hairline details.
+    STORY: Users log intimate wellness metrics effortlessly in seconds and discover calm, trustworthy predictions.
+    FIRST VIEWPORT: Organic lunar cycle disc with layered phase rings, immediate today status, and tactile quick logging.
+    FORM: Japanese Ceramic Sanctuary / Lunar Rhythm (Candidate 3, seed 575c66bc).
+    FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+    -->
+    <div class="relative min-h-screen pb-24">
       <Header
         title={headerTitle ?? (activeRoute === 'home' ? `${translate('nav.greeting')}, ${user?.email?.split('@')[0] ?? translate('nav.there')}` : title)}
         subtitle={headerSubtitle}
@@ -69,11 +77,15 @@ const navItems = [
         <slot />
       </main>
     </div>
-    <BottomNav items={navItems} client:load />
-    <div class="fixed bottom-24 right-4 z-50 flex flex-col items-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-sm backdrop-blur-sm">
+
+    <!-- Floating Theme & Language Utility Pill -->
+    <div class="fixed top-3 right-4 z-40 flex items-center gap-1 rounded-full border border-border/80 bg-card/85 p-1 shadow-sm shadow-stone-900/5 backdrop-blur-md">
       <LangToggle client:load />
       <ThemeToggle client:load />
     </div>
+
+    <!-- Floating Curved Bottom Navigation -->
+    <BottomNav items={navItems} client:load />
     <PwaPrompt client:load />
   </body>
 </html>

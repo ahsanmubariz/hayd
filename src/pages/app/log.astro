@@ -1,6 +1,6 @@
 ---
 import AppShell from '@/layouts/AppShell.astro';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { addPeriodLog, addDailyStatus, editPeriodLog, editDailyStatus } from '@/lib/modules/cycles/service';
@@ -26,16 +26,10 @@ const existingStatus = await getDailyStatusLog(user.id, logDate);
 const allPeriods = await listPeriodLogs(user.id);
 const existingPeriod = allPeriods.find(p => p.start_date <= logDate && p.end_date >= logDate) ?? null;
 
-function formatDisplayDate(iso: string): string {
-  if (!iso) return iso;
-  const d = new Date(iso + 'T12:00:00');
-  return d.toLocaleDateString('en-GB');
-}
-
 function formatDateLong(iso: string): string {
   if (!iso) return iso;
   const d = new Date(iso + 'T12:00:00');
-  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 }
 
 if (Astro.request.method === 'POST') {
@@ -101,24 +95,6 @@ if (Astro.request.method === 'POST') {
   }
 }
 
-// Pain level labels
-function painLabel(i: number): string {
-  if (i === 0) return translate('log.no_pain');
-  if (i < 4) return translate('log.mild');
-  if (i < 7) return translate('log.moderate');
-  if (i < 9) return translate('log.severe');
-  return translate('log.very_severe');
-}
-
-// Energy level labels
-function energyLabel(i: number): string {
-  if (i === 0) return translate('log.exhausted');
-  if (i < 4) return translate('log.low');
-  if (i < 7) return translate('log.medium');
-  if (i < 9) return translate('log.high');
-  return translate('log.very_high');
-}
-
 const moods = [
   { key: 'log.happy', val: 'happy' },
   { key: 'log.calm', val: 'calm' },
@@ -136,237 +112,271 @@ const moods = [
 ---
 
 <AppShell
-  title="Log"
+  title="Log Entry"
   activeRoute="log"
   headerTitle={existingStatus || existingPeriod ? translate('log.edit_entry') : translate('log.new_entry')}
   headerSubtitle={formatDateLong(logDate)}
   showBack
   backHref="/app"
 >
-  <div class="space-y-4 p-4">
+  <div class="space-y-4 p-4 pb-8">
     {message && (
       <Alert variant={messageType === 'error' ? 'error' : 'success'}>{message}</Alert>
     )}
 
-    <Card>
-      <CardHeader className="pb-2">
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            id="tab-status"
-            onclick="switchTab('status')"
-            class={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-              tab === 'status' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {translate('log.daily_status_tab')}
-          </button>
-          <button
-            type="button"
-            id="tab-period"
-            onclick="switchTab('period')"
-            class={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-              tab === 'period' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {translate('log.period_tab')}
-          </button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <!-- Daily Status Form -->
-        <form method="POST" id="form-status" class={tab === 'status' ? '' : 'hidden'}>
-          <input type="hidden" name="action" value="status" />
-          <input type="hidden" name="_csrf" value={csrfToken} />
-          <div class="space-y-4">
-            <!-- Date -->
-            <div>
-              <label for="logDate-status" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.date')}</label>
-              <input
-                type="date"
-                id="logDate-status"
-                name="logDate"
-                value={logDate}
-                onchange="window.location.href='/app/log?date='+this.value"
-                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-              <p class="mt-1 text-xs text-muted-foreground">{formatDisplayDate(logDate)}</p>
-            </div>
+    {/* Tab Toggle Pill */}
+    <div class="flex items-center rounded-2xl border border-border bg-card p-1.5 shadow-2xs">
+      <button
+        type="button"
+        id="tab-status"
+        onclick="switchTab('status')"
+        class={`flex-1 rounded-xl py-2 text-xs font-semibold tracking-tight transition-all duration-150 ${
+          tab === 'status' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        {translate('log.daily_status_tab')}
+      </button>
+      <button
+        type="button"
+        id="tab-period"
+        onclick="switchTab('period')"
+        class={`flex-1 rounded-xl py-2 text-xs font-semibold tracking-tight transition-all duration-150 ${
+          tab === 'period' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        {translate('log.period_tab')}
+      </button>
+    </div>
 
-            <!-- Bleeding status -->
-            <div>
-              <label for="bleedingStatus" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.bleeding_status')}</label>
-              <select
-                id="bleedingStatus"
-                name="bleedingStatus"
-                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="" selected={!existingStatus?.bleeding_status}>{translate('log.select_bleeding')}</option>
-                <option value="spotting" selected={existingStatus?.bleeding_status === 'spotting'}>{translate('log.spotting')}</option>
-                <option value="light" selected={existingStatus?.bleeding_status === 'light'}>{translate('log.light')}</option>
-                <option value="medium" selected={existingStatus?.bleeding_status === 'medium'}>{translate('log.medium')}</option>
-                <option value="heavy" selected={existingStatus?.bleeding_status === 'heavy'}>{translate('log.heavy')}</option>
-              </select>
-            </div>
+    {/* Daily Status Form */}
+    <div id="form-status" class={tab === 'status' ? 'space-y-4' : 'hidden'}>
+      <form method="POST">
+        <input type="hidden" name="action" value="status" />
+        <input type="hidden" name="_csrf" value={csrfToken} />
+        
+        <Card className="space-y-4 p-5">
+          <!-- Date Selector -->
+          <div class="flex flex-col gap-1.5">
+            <label for="logDate-status" class="text-xs font-medium text-foreground tracking-tight">{translate('log.date')}</label>
+            <input
+              type="date"
+              id="logDate-status"
+              name="logDate"
+              value={logDate}
+              onchange="window.location.href='/app/log?date='+this.value"
+              class="h-10 w-full rounded-xl border border-border bg-card px-3.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
 
-            <!-- Pain level -->
-            <div>
-              <label for="painLevel" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.pain_level')}</label>
-              <select
-                id="painLevel"
-                name="painLevel"
-                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="" selected={!existingStatus?.pain_level && existingStatus?.pain_level !== 0}>{translate('log.select_pain')}</option>
-                {Array.from({ length: 11 }, (_, i) => (
-                  <option value={i} selected={existingStatus?.pain_level === i}>{i} - {painLabel(i)}</option>
-                ))}
-              </select>
-              <p class="mt-1 text-xs text-muted-foreground">{translate('log.pain_help')}</p>
-            </div>
-
-            <!-- Mood -->
-            <div>
-              <label for="mood" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.mood')}</label>
-              <select
-                id="mood"
-                name="mood"
-                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="" selected={!existingStatus?.mood}>{translate('log.select_mood')}</option>
-                {moods.map((m) => (
-                  <option value={m.val} selected={existingStatus?.mood?.toLowerCase() === m.val}>{translate(m.key as any)}</option>
-                ))}
-              </select>
-            </div>
-
-            <!-- Energy level -->
-            <div>
-              <label for="energyLevel" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.energy_level')}</label>
-              <select
-                id="energyLevel"
-                name="energyLevel"
-                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="" selected={!existingStatus?.energy_level && existingStatus?.energy_level !== 0}>{translate('log.select_energy')}</option>
-                {Array.from({ length: 11 }, (_, i) => (
-                  <option value={i} selected={existingStatus?.energy_level === i}>{i} - {energyLabel(i)}</option>
-                ))}
-              </select>
-              <p class="mt-1 text-xs text-muted-foreground">{translate('log.energy_help')}</p>
-            </div>
-
-            <!-- Notes -->
-            <div>
-              <label for="notes-status" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.notes')}</label>
-              <textarea
-                id="notes-status"
-                name="notes"
-                rows={3}
-                maxlength={500}
-                placeholder={translate('log.notes_placeholder')}
-                class="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
-              >{existingStatus?.notes ?? ''}</textarea>
-            </div>
-
-            <div class="flex gap-2 pt-1">
-              <a href="/app" class="flex-1">
-                <Button type="button" variant="outline" class="w-full">{translate('log.cancel')}</Button>
-              </a>
-              <Button type="submit" class="flex-1">
-                {existingStatus ? translate('log.update') : translate('log.save')}
-              </Button>
+          <!-- Bleeding Status -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-foreground tracking-tight">{translate('log.bleeding_status')}</label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { val: '', label: 'None' },
+                { val: 'spotting', label: translate('log.spotting') },
+                { val: 'light', label: translate('log.light') },
+                { val: 'medium', label: translate('log.medium') },
+                { val: 'heavy', label: translate('log.heavy') },
+              ].filter(x => x.val).map((opt) => (
+                <label class="relative flex items-center justify-center rounded-xl border border-border bg-card p-2.5 text-xs font-medium cursor-pointer hover:bg-muted/60 transition-all has-checked:border-primary has-checked:bg-primary/10 has-checked:text-primary">
+                  <input
+                    type="radio"
+                    name="bleedingStatus"
+                    value={opt.val}
+                    checked={existingStatus?.bleeding_status === opt.val}
+                    class="sr-only"
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
             </div>
           </div>
-        </form>
 
-        <!-- Period Form -->
-        <form method="POST" id="form-period" class={tab === 'period' ? '' : 'hidden'}>
-          <input type="hidden" name="action" value="period" />
-          <input type="hidden" name="_csrf" value={csrfToken} />
-          <div class="space-y-4">
-            <!-- Start date -->
-            <div>
-              <label for="startDate" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.start_date')}</label>
-              <input
-                type="date"
-                id="startDate"
-                name="startDate"
-                value={existingPeriod?.start_date ?? logDate}
-                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-              <p class="mt-1 text-xs text-muted-foreground">
-                {formatDisplayDate(existingPeriod?.start_date ?? logDate)}
-              </p>
+          <!-- Pain Level Slider (0-10) -->
+          <div class="flex flex-col gap-1.5">
+            <div class="flex items-center justify-between">
+              <label for="painRange" class="text-xs font-medium text-foreground tracking-tight">{translate('log.pain_level')}</label>
+              <span id="painDisplay" class="text-xs font-bold text-primary">
+                {existingStatus?.pain_level != null ? `${existingStatus.pain_level}/10` : '0/10'}
+              </span>
             </div>
+            <input
+              type="range"
+              id="painRange"
+              name="painLevel"
+              min="0"
+              max="10"
+              value={existingStatus?.pain_level ?? 0}
+              oninput="document.getElementById('painDisplay').textContent = this.value + '/10'"
+              class="w-full accent-primary h-2 bg-muted rounded-lg cursor-pointer"
+            />
+            <p class="text-[11px] text-muted-foreground">{translate('log.pain_help')}</p>
+          </div>
 
-            <!-- End date -->
-            <div>
-              <label for="endDate" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.end_date')}</label>
-              <input
-                type="date"
-                id="endDate"
-                name="endDate"
-                value={existingPeriod?.end_date ?? logDate}
-                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-              <p class="mt-1 text-xs text-muted-foreground">
-                {formatDisplayDate(existingPeriod?.end_date ?? logDate)}
-              </p>
+          <!-- Energy Level Slider (0-10) -->
+          <div class="flex flex-col gap-1.5">
+            <div class="flex items-center justify-between">
+              <label for="energyRange" class="text-xs font-medium text-foreground tracking-tight">{translate('log.energy_level')}</label>
+              <span id="energyDisplay" class="text-xs font-bold text-amber">
+                {existingStatus?.energy_level != null ? `${existingStatus.energy_level}/10` : '5/10'}
+              </span>
             </div>
+            <input
+              type="range"
+              id="energyRange"
+              name="energyLevel"
+              min="0"
+              max="10"
+              value={existingStatus?.energy_level ?? 5}
+              oninput="document.getElementById('energyDisplay').textContent = this.value + '/10'"
+              class="w-full accent-amber h-2 bg-muted rounded-lg cursor-pointer"
+            />
+            <p class="text-[11px] text-muted-foreground">{translate('log.energy_help')}</p>
+          </div>
 
-            <!-- Flow intensity -->
-            <div>
-              <label for="flowIntensity" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.flow_intensity')}</label>
-              <select
-                id="flowIntensity"
-                name="flowIntensity"
-                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="" selected={!existingPeriod?.flow_intensity}>{translate('log.select_intensity')}</option>
-                <option value="light" selected={existingPeriod?.flow_intensity === 'light'}>{translate('log.light')}</option>
-                <option value="medium" selected={existingPeriod?.flow_intensity === 'medium'}>{translate('log.medium')}</option>
-                <option value="heavy" selected={existingPeriod?.flow_intensity === 'heavy'}>{translate('log.heavy')}</option>
-              </select>
-            </div>
-
-            <!-- Notes -->
-            <div>
-              <label for="notes-period" class="mb-1.5 block text-sm font-medium text-foreground">{translate('log.notes')}</label>
-              <textarea
-                id="notes-period"
-                name="notes"
-                rows={3}
-                maxlength={500}
-                placeholder={translate('log.notes_placeholder')}
-                class="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
-              >{existingPeriod?.notes ?? ''}</textarea>
-            </div>
-
-            <div class="flex gap-2 pt-1">
-              <a href="/app" class="flex-1">
-                <Button type="button" variant="outline" class="w-full">{translate('log.cancel')}</Button>
-              </a>
-              <Button type="submit" class="flex-1">
-                {existingPeriod ? translate('log.update') : translate('log.save')}
-              </Button>
+          <!-- Mood Pebble Selector -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-foreground tracking-tight">{translate('log.mood')}</label>
+            <div class="flex flex-wrap gap-1.5">
+              {moods.map((m) => (
+                <label class="relative flex items-center rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium cursor-pointer hover:bg-muted/60 transition-all has-checked:border-accent has-checked:bg-accent/15 has-checked:text-foreground">
+                  <input
+                    type="radio"
+                    name="mood"
+                    value={m.val}
+                    checked={existingStatus?.mood?.toLowerCase() === m.val}
+                    class="sr-only"
+                  />
+                  <span>{translate(m.key as any)}</span>
+                </label>
+              ))}
             </div>
           </div>
-        </form>
-      </CardContent>
-    </Card>
+
+          <!-- Notes -->
+          <div class="flex flex-col gap-1.5">
+            <label for="notes-status" class="text-xs font-medium text-foreground tracking-tight">{translate('log.notes')}</label>
+            <textarea
+              id="notes-status"
+              name="notes"
+              rows={3}
+              maxlength={500}
+              placeholder={translate('log.notes_placeholder')}
+              class="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-ring resize-none shadow-xs"
+            >{existingStatus?.notes ?? ''}</textarea>
+          </div>
+
+          <div class="flex gap-2.5 pt-2">
+            <a href="/app" class="flex-1">
+              <Button type="button" variant="outline" className="w-full h-10">{translate('log.cancel')}</Button>
+            </a>
+            <Button type="submit" className="flex-1 h-10 shadow-xs">
+              {existingStatus ? translate('log.update') : translate('log.save')}
+            </Button>
+          </div>
+        </Card>
+      </form>
+    </div>
+
+    {/* Period Form */}
+    <div id="form-period" class={tab === 'period' ? 'space-y-4' : 'hidden'}>
+      <form method="POST">
+        <input type="hidden" name="action" value="period" />
+        <input type="hidden" name="_csrf" value={csrfToken} />
+        
+        <Card className="space-y-4 p-5">
+          <!-- Start Date -->
+          <div class="flex flex-col gap-1.5">
+            <label for="startDate" class="text-xs font-medium text-foreground tracking-tight">{translate('log.start_date')}</label>
+            <input
+              type="date"
+              id="startDate"
+              name="startDate"
+              required
+              value={existingPeriod?.start_date ?? logDate}
+              class="h-10 w-full rounded-xl border border-border bg-card px-3.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+
+          <!-- End Date -->
+          <div class="flex flex-col gap-1.5">
+            <label for="endDate" class="text-xs font-medium text-foreground tracking-tight">{translate('log.end_date')}</label>
+            <input
+              type="date"
+              id="endDate"
+              name="endDate"
+              required
+              value={existingPeriod?.end_date ?? logDate}
+              class="h-10 w-full rounded-xl border border-border bg-card px-3.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+
+          <!-- Flow Intensity Selector -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-foreground tracking-tight">{translate('log.flow_intensity')}</label>
+            <div class="grid grid-cols-3 gap-2">
+              {[
+                { val: 'light', label: translate('log.light') },
+                { val: 'medium', label: translate('log.medium') },
+                { val: 'heavy', label: translate('log.heavy') },
+              ].map((opt) => (
+                <label class="relative flex items-center justify-center rounded-xl border border-border bg-card p-2.5 text-xs font-medium cursor-pointer hover:bg-muted/60 transition-all has-checked:border-primary has-checked:bg-primary/10 has-checked:text-primary">
+                  <input
+                    type="radio"
+                    name="flowIntensity"
+                    value={opt.val}
+                    checked={existingPeriod?.flow_intensity === opt.val}
+                    class="sr-only"
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="flex flex-col gap-1.5">
+            <label for="notes-period" class="text-xs font-medium text-foreground tracking-tight">{translate('log.notes')}</label>
+            <textarea
+              id="notes-period"
+              name="notes"
+              rows={3}
+              maxlength={500}
+              placeholder={translate('log.notes_placeholder')}
+              class="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-ring resize-none shadow-xs"
+            >{existingPeriod?.notes ?? ''}</textarea>
+          </div>
+
+          <div class="flex gap-2.5 pt-2">
+            <a href="/app" class="flex-1">
+              <Button type="button" variant="outline" className="w-full h-10">{translate('log.cancel')}</Button>
+            </a>
+            <Button type="submit" className="flex-1 h-10 shadow-xs">
+              {existingPeriod ? translate('log.update') : translate('log.save')}
+            </Button>
+          </div>
+        </Card>
+      </form>
+    </div>
   </div>
 
   <script is:inline>
     function switchTab(t) {
       document.getElementById('form-status').classList.toggle('hidden', t !== 'status');
       document.getElementById('form-period').classList.toggle('hidden', t !== 'period');
-      document.getElementById('tab-status').classList.toggle('bg-primary/10', t === 'status');
-      document.getElementById('tab-status').classList.toggle('text-primary', t === 'status');
-      document.getElementById('tab-status').classList.toggle('text-muted-foreground', t !== 'status');
-      document.getElementById('tab-period').classList.toggle('bg-primary/10', t === 'period');
-      document.getElementById('tab-period').classList.toggle('text-primary', t === 'period');
-      document.getElementById('tab-period').classList.toggle('text-muted-foreground', t !== 'period');
+      
+      const tabStatus = document.getElementById('tab-status');
+      const tabPeriod = document.getElementById('tab-period');
+      
+      if (t === 'status') {
+        tabStatus.className = 'flex-1 rounded-xl py-2 text-xs font-semibold tracking-tight transition-all duration-150 bg-primary text-primary-foreground shadow-xs';
+        tabPeriod.className = 'flex-1 rounded-xl py-2 text-xs font-semibold tracking-tight transition-all duration-150 text-muted-foreground hover:text-foreground';
+      } else {
+        tabPeriod.className = 'flex-1 rounded-xl py-2 text-xs font-semibold tracking-tight transition-all duration-150 bg-primary text-primary-foreground shadow-xs';
+        tabStatus.className = 'flex-1 rounded-xl py-2 text-xs font-semibold tracking-tight transition-all duration-150 text-muted-foreground hover:text-foreground';
+      }
+      
       const url = new URL(window.location);
       url.searchParams.set('tab', t);
       window.history.replaceState({}, '', url);

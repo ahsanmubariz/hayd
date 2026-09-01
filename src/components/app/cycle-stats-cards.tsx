@@ -18,40 +18,40 @@ export function CycleStatsCards({
   const { t } = useTranslation();
   return (
     <div className="grid grid-cols-2 gap-3">
-      <Card>
-        <CardHeader className="mb-1">
-          <CardTitle className="text-xs text-muted-foreground">{t('stats.avg_cycle')}</CardTitle>
+      <Card className="hover:border-primary/20">
+        <CardHeader className="p-4 pb-1">
+          <CardTitle className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t('stats.avg_cycle')}</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-semibold">
+        <CardContent className="p-4 pt-1">
+          <p className="text-2xl font-bold tracking-tight text-foreground">
             {averageCycleLength ? `${averageCycleLength}d` : '—'}
           </p>
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader className="mb-1">
-          <CardTitle className="text-xs text-muted-foreground">{t('stats.avg_period')}</CardTitle>
+      <Card className="hover:border-primary/20">
+        <CardHeader className="p-4 pb-1">
+          <CardTitle className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t('stats.avg_period')}</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-semibold">
+        <CardContent className="p-4 pt-1">
+          <p className="text-2xl font-bold tracking-tight text-foreground">
             {averagePeriodLength ? `${averagePeriodLength}d` : '—'}
           </p>
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader className="mb-1">
-          <CardTitle className="text-xs text-muted-foreground">{t('stats.cycles_tracked')}</CardTitle>
+      <Card className="hover:border-primary/20">
+        <CardHeader className="p-4 pb-1">
+          <CardTitle className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t('stats.cycles_tracked')}</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-semibold">{totalCycles ?? 0}</p>
+        <CardContent className="p-4 pt-1">
+          <p className="text-2xl font-bold tracking-tight text-foreground">{totalCycles ?? 0}</p>
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader className="mb-1">
-          <CardTitle className="text-xs text-muted-foreground">{t('stats.trend')}</CardTitle>
+      <Card className="hover:border-primary/20">
+        <CardHeader className="p-4 pb-1">
+          <CardTitle className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t('stats.trend')}</CardTitle>
         </CardHeader>
-        <CardContent>
-          {trendLabel ? <Badge tone="muted">{trendLabel}</Badge> : <span className="text-sm">—</span>}
+        <CardContent className="p-4 pt-1 flex items-center">
+          {trendLabel ? <Badge tone="muted">{trendLabel}</Badge> : <span className="text-sm font-medium text-muted-foreground">—</span>}
         </CardContent>
       </Card>
     </div>

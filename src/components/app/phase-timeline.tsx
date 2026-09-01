@@ -26,7 +26,7 @@ export function PhaseTimeline({
   const today = new Date().toISOString().slice(0, 10);
   const startDate = lastPeriodStart;
   const endDate = nextPeriodDate ?? addDays(startDate, cycleLength);
-  const totalDays = daysBetween(startDate, endDate);
+  const totalDays = Math.max(daysBetween(startDate, endDate), 1);
 
   // Helper: position as percentage
   const pos = (date: string) => {
@@ -43,74 +43,76 @@ export function PhaseTimeline({
 
   return (
     <div className="w-full">
-      {/* Timeline labels */}
-      <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1.5 px-0.5">
+      {/* Timeline boundary labels */}
+      <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground mb-2 px-1">
         <span>{t('timeline.period_start')}</span>
         <span>{t('timeline.cycle_length', cycleLength)}</span>
       </div>
 
-      {/* Timeline bar */}
-      <div className="relative h-8 w-full">
-        {/* Background track */}
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-3 rounded-full bg-muted" />
-
-        {/* Period block */}
+      {/* Timeline track container */}
+      <div className="relative h-6 w-full rounded-full bg-muted/70 p-1 border border-border/80 shadow-inner flex items-center">
+        {/* Period segment */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 h-3 rounded-l-full bg-primary/70"
+          className="absolute h-4 rounded-full bg-primary/80 transition-all duration-300"
           style={{
             left: `${periodStartPct}%`,
-            width: `${Math.max(periodEndPct - periodStartPct, 2)}%`,
+            width: `${Math.max(periodEndPct - periodStartPct, 3)}%`,
           }}
+          title={t('timeline.period')}
         />
 
-        {/* Fertile window */}
+        {/* Fertile window segment */}
         {fertileStart && fertileEnd && (
           <div
-            className="absolute top-1/2 -translate-y-1/2 h-3 bg-accent/40"
+            className="absolute h-4 rounded-full bg-sage/30 border border-sage/40 transition-all duration-300"
             style={{
               left: `${pos(fertileStart)}%`,
-              width: `${Math.max(pos(fertileEnd) - pos(fertileStart), 3)}%`,
+              width: `${Math.max(pos(fertileEnd) - pos(fertileStart), 4)}%`,
             }}
+            title={t('timeline.fertile_window')}
           />
         )}
 
-        {/* Ovulation dot */}
+        {/* Ovulation milestone dot */}
         {predictedOvulationDate && (
           <div
-            className="absolute top-1/2 -translate-y-1/2 h-4 w-4 rounded-full bg-accent border-2 border-card shadow-sm z-10"
-            style={{ left: `calc(${pos(predictedOvulationDate)}% - 8px)` }}
+            className="absolute h-5 w-5 rounded-full bg-sage border-2 border-card shadow-sm z-10 transition-all duration-300 flex items-center justify-center"
+            style={{ left: `calc(${pos(predictedOvulationDate)}% - 10px)` }}
             title={t('timeline.ovulation')}
-          />
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-white" />
+          </div>
         )}
 
-        {/* Today marker */}
+        {/* Today pin marker */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 z-20"
-          style={{ left: `${todayPct}%` }}
+          className="absolute z-20 transition-all duration-500"
+          style={{ left: `calc(${todayPct}% - 6px)` }}
         >
           <div className="flex flex-col items-center">
-            <div className="h-5 w-0.5 bg-foreground rounded-full" />
-            <div className="h-3 w-3 rounded-full bg-foreground border-2 border-card shadow-sm -mt-0.5" />
+            <div className="h-4 w-3 rounded-full bg-foreground border border-card shadow-sm flex items-center justify-center">
+              <span className="h-1 w-1 rounded-full bg-background" />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-[11px] text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 mt-3 px-1 text-[11px] text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-primary/70" />
+          <span className="h-2 w-2 rounded-full bg-primary" />
           {t('timeline.period')}
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-accent/60" />
+          <span className="h-2 w-2 rounded-full bg-sage/40 border border-sage" />
           {t('timeline.fertile_window')}
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-accent border border-card" />
+          <span className="h-2 w-2 rounded-full bg-sage" />
           {t('timeline.ovulation')}
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-foreground border border-card" />
+          <span className="h-2 w-2 rounded-full bg-foreground" />
           {t('timeline.today')}
         </span>
       </div>

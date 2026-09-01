@@ -10,7 +10,7 @@ interface KpiCardsProps {
 export function KpiCards({ totalUsers, activeUsers, inactiveUsers, newUsers }: KpiCardsProps) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <KpiCard label="Total users" value={totalUsers} />
+      <KpiCard label="Total Users" value={totalUsers} />
       <KpiCard label="Active" value={activeUsers} tone="success" />
       <KpiCard label="Inactive" value={inactiveUsers} tone="warning" />
       <KpiCard label="New (30d)" value={newUsers} />
@@ -29,17 +29,17 @@ function KpiCard({
 }) {
   const toneClass =
     tone === 'success'
-      ? 'text-green-600 dark:text-green-400'
+      ? 'text-sage'
       : tone === 'warning'
-        ? 'text-amber-600 dark:text-amber-400'
+        ? 'text-amber'
         : 'text-foreground';
   return (
-    <Card>
-      <CardHeader className="mb-1">
-        <CardTitle className="text-xs text-muted-foreground">{label}</CardTitle>
+    <Card className="hover:border-primary/20 transition-all shadow-xs">
+      <CardHeader className="p-4 pb-1">
+        <CardTitle className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className={`text-2xl font-semibold ${toneClass}`}>{value}</p>
+      <CardContent className="p-4 pt-1">
+        <p className={`text-2xl font-bold tracking-tight ${toneClass}`}>{value}</p>
       </CardContent>
     </Card>
   );

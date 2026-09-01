@@ -6,15 +6,15 @@ interface Props {
   title?: string;
 }
 
-const { title = 'Hayd' } = Astro.props;
+const { title = 'Sign in · Hayd' } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="description" content="Hayd — a privacy-conscious calendar-based cycle tracker." />
+    <meta name="description" content="Hayd — private, calm, calendar-based cycle tracker." />
     <title>{title}</title>
     <script is:inline>
       (function() {
@@ -24,15 +24,29 @@ const { title = 'Hayd' } = Astro.props;
       })();
     </script>
   </head>
-  <body class="min-h-screen bg-background text-foreground antialiased">
-    <main class="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-4 py-8">
-      <div class="mb-6 flex flex-col items-center gap-1">
-        <span class="text-3xl font-semibold text-primary">Hayd</span>
-        <span class="text-xs text-muted-foreground">Private cycle tracking</span>
+  <body class="min-h-screen bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground">
+    <main class="mx-auto flex min-h-screen max-w-sm flex-col items-center justify-center px-4 py-8">
+      {/* Ceramic Logo & Brand Header */}
+      <div class="mb-6 flex flex-col items-center text-center gap-1.5">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-xs shadow-stone-900/5 mb-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 3a9 9 0 0 1 0 18v-18z" fill="currentColor" fillOpacity="0.2" />
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold tracking-tight text-foreground">Hayd</h1>
+        <p class="text-xs text-muted-foreground max-w-xs leading-relaxed">
+          Sanctuary for intimate cycle tracking & daily wellness
+        </p>
       </div>
+
       <div class="w-full">
         <slot />
       </div>
+
+      <footer class="mt-8 text-center text-[11px] text-muted-foreground/70">
+        <p>100% Private · Zero Tracking · WebCrypto Secured</p>
+      </footer>
     </main>
     <PwaPrompt client:load />
   </body>

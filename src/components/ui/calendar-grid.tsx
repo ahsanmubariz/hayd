@@ -33,13 +33,6 @@ function addMonths(month: string, delta: number): string {
   return toMonthStr(date.getUTCFullYear(), date.getUTCMonth());
 }
 
-const MARK_COLORS: Record<string, string> = {
-  period: 'bg-primary text-primary-foreground',
-  predicted: 'bg-primary/20 text-primary',
-  ovulation: 'bg-accent text-accent-foreground',
-  fertile: 'bg-accent/30 text-accent-foreground',
-};
-
 export function CalendarGrid({
   initialMonth,
   today,
@@ -77,68 +70,82 @@ export function CalendarGrid({
   const weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
   return (
-    <div className="select-none">
+    <div className="select-none p-1">
       {/* Month navigation */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3 px-1">
         <button
           type="button"
           onClick={() => setCurrentMonth(addMonths(currentMonth, -1))}
-          className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded-xl border border-border/80 bg-card text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95 transition-all shadow-2xs"
           aria-label={t('calendar_grid.prev_month')}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
         <div className="text-center">
-          <h3 className="text-sm font-semibold text-foreground">
+          <h3 className="text-sm font-semibold text-foreground tracking-tight">
             {MONTH_NAMES[month]} {year}
           </h3>
         </div>
         <button
           type="button"
           onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-          className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded-xl border border-border/80 bg-card text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95 transition-all shadow-2xs"
           aria-label={t('calendar_grid.next_month')}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 18l6-6-6-6" />
           </svg>
         </button>
       </div>
 
       {/* Weekday headers */}
-      <div className="grid grid-cols-7 text-center text-xs font-medium text-muted-foreground mb-1">
+      <div className="grid grid-cols-7 text-center text-[11px] font-medium text-muted-foreground/80 mb-1">
         {weekdays.map((w, i) => (
           <div key={i} className="py-1">{w}</div>
         ))}
       </div>
 
       {/* Day cells */}
-      <div className="grid grid-cols-7 gap-0.5">
+      <div className="grid grid-cols-7 gap-1">
         {cells.map((day, idx) => {
           if (day === null) return <div key={`e-${idx}`} className="aspect-square" />;
           const dateStr = `${currentMonth}-${String(day).padStart(2, '0')}`;
           const mark = markedDates.get(dateStr);
           const isToday = dateStr === today;
           const isSelected = dateStr === selectedDate;
+
           return (
             <button
               key={`d-${day}`}
               type="button"
               onClick={() => onSelect(dateStr)}
               className={clsx(
-                'relative aspect-square rounded-full text-sm font-medium transition-colors',
-                'flex items-center justify-center',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                mark && MARK_COLORS[mark],
-                isToday && !mark && 'border-2 border-primary text-primary',
-                isSelected && !mark && 'ring-2 ring-primary ring-offset-1 ring-offset-card',
-                isSelected && mark && 'ring-2 ring-foreground ring-offset-1 ring-offset-card',
-                !mark && !isToday && !isSelected && 'hover:bg-muted text-foreground',
+                'relative aspect-square rounded-xl text-xs font-medium transition-all duration-150',
+                'flex flex-col items-center justify-center cursor-pointer',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+                // Base styles
+                !mark && !isToday && !isSelected && 'hover:bg-muted/60 text-foreground',
+                // Mark styles
+                mark === 'period' && 'bg-primary text-primary-foreground font-semibold shadow-xs',
+                mark === 'predicted' && 'bg-primary/15 text-primary border border-primary/30 border-dashed',
+                mark === 'ovulation' && 'bg-sage text-sage-foreground font-semibold shadow-xs',
+                mark === 'fertile' && 'bg-sage/15 text-sage border border-sage/30',
+                // Today marker
+                isToday && !mark && 'border-2 border-primary text-primary font-semibold',
+                // Selected marker
+                isSelected && 'ring-2 ring-foreground ring-offset-1 ring-offset-background scale-105 z-10',
               )}
             >
-              {day}
+              <span>{day}</span>
+              {/* Optional tiny indicator dot below number */}
+              {mark === 'period' && (
+                <span className="absolute bottom-1 h-1 w-1 rounded-full bg-white/80" />
+              )}
+              {mark === 'ovulation' && (
+                <span className="absolute bottom-1 h-1 w-1 rounded-full bg-white/80" />
+              )}
             </button>
           );
         })}

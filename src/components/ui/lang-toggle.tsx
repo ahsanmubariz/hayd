@@ -14,9 +14,9 @@ export function LangToggle() {
       type="button"
       onClick={toggle}
       aria-label={t('lang.switch')}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      className="inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95"
     >
-      <span className="text-sm font-semibold leading-none">{lang === 'id' ? 'ID' : 'EN'}</span>
+      <span className="leading-none text-[11px]">{lang === 'id' ? 'ID' : 'EN'}</span>
     </button>
   );
 }

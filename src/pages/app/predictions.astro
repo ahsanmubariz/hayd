@@ -1,6 +1,6 @@
 ---
 import AppShell from '@/layouts/AppShell.astro';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { PredictionExplainer } from '@/components/app/prediction-explainer';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -29,13 +29,15 @@ const periodLogs = await findPeriodLogs(user.id);
 ---
 
 <AppShell title="Predictions" activeRoute="predictions" headerTitle={translate('nav.predictions')} headerSubtitle={translate('predictions.based_on')}>
-  <div class="space-y-4 p-4">
+  <div class="space-y-4 p-4 pb-8">
     {periodLogs.length === 0 ? (
-      <Alert variant="info" title={translate('predictions.no_data')}>
+      <Alert variant="info">
+        <strong class="block mb-0.5 font-semibold text-foreground">{translate('predictions.no_data')}</strong>
         {translate('predictions.no_data_desc')}
       </Alert>
     ) : periodLogs.length < 3 ? (
-      <Alert variant="warning" title={translate('predictions.limited_data')}>
+      <Alert variant="warning">
+        <strong class="block mb-0.5 font-semibold text-foreground">{translate('predictions.limited_data')}</strong>
         {translate('predictions.limited_data_desc', periodLogs.length)}
       </Alert>
     ) : null}
@@ -56,24 +58,37 @@ const periodLogs = await findPeriodLogs(user.id);
       />
     ) : (
       <Card>
-        <CardContent className="py-8 text-center">
-          <p className="text-4xl mb-3">🔮</p>
-          <p className="text-sm font-medium text-foreground mb-1">{translate('predictions.no_prediction')}</p>
-          <p className="text-xs text-muted-foreground">{translate('predictions.log_to_start')}</p>
+        <CardContent className="py-10 text-center flex flex-col items-center">
+          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground border border-border">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 3a9 9 0 0 1 0 18v-18z" fill="currentColor" fillOpacity="0.15" />
+            </svg>
+          </div>
+          <p className="text-sm font-semibold text-foreground mb-1">{translate('predictions.no_prediction')}</p>
+          <p className="text-xs text-muted-foreground max-w-xs">{translate('predictions.log_to_start')}</p>
         </CardContent>
       </Card>
     )}
 
-    <Card className="border-dashed">
-      <p className="text-xs text-muted-foreground text-center">
-        {translate('predictions.disclaimer')}
-      </p>
+    <!-- Medical Disclaimer Card -->
+    <Card className="border-border/60 bg-muted/30">
+      <CardContent className="p-4">
+        <p className="text-[11px] text-muted-foreground/80 leading-relaxed text-center">
+          {translate('predictions.disclaimer')}
+        </p>
+      </CardContent>
     </Card>
 
     {periodLogs.length > 0 && (
       <form method="POST">
         <input type="hidden" name="_csrf" value={csrfToken} />
-        <Button type="submit" className="w-full">{translate('predictions.recompute')}</Button>
+        <Button type="submit" variant="outline" className="w-full h-10 text-xs font-semibold shadow-xs">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+          </svg>
+          {translate('predictions.recompute')}
+        </Button>
       </form>
     )}
   </div>

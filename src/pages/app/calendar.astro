@@ -39,44 +39,53 @@ if (prediction) {
 }
 ---
 
-<AppShell title="Calendar" activeRoute="calendar" headerTitle={translate('nav.calendar')} headerSubtitle="Track your cycle at a glance">
-  <div class="space-y-4 p-4">
-    <Card>
+<AppShell title="Calendar" activeRoute="calendar" headerTitle={translate('nav.calendar')} headerSubtitle="Monthly cycle rhythm at a glance">
+  <div class="space-y-4 p-4 pb-6">
+    <Card className="p-2 shadow-sm shadow-stone-900/5">
       <CalendarGrid
         initialMonth={initialMonth}
         today={today}
         markedDates={markedDates}
         onSelect={(date) => {
-          globalThis.location.href = `/app/log?date=${date}`;
+          window.location.href = `/app/log?date=${date}`;
         }}
         client:load
       />
     </Card>
 
     <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm">{translate('calendar.legend')}</CardTitle>
+      <CardHeader className="p-4 pb-2">
+        <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{translate('calendar.legend')}</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 pt-1">
         <div className="grid grid-cols-2 gap-2 text-xs">
-          <span className="inline-flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full bg-primary shrink-0" /> {translate('calendar.period')}
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full bg-primary/20 shrink-0" /> {translate('calendar.predicted')}
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full bg-accent shrink-0" /> {translate('calendar.ovulation')}
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full bg-accent/30 shrink-0" /> {translate('calendar.fertile_window')}
-          </span>
+          <div className="flex items-center gap-2 rounded-xl bg-primary/5 p-2 border border-primary/15">
+            <span className="h-2.5 w-2.5 rounded-full bg-primary shrink-0" />
+            <span className="font-medium text-foreground">{translate('calendar.period')}</span>
+          </div>
+          <div className="flex items-center gap-2 rounded-xl bg-primary/5 p-2 border border-primary/20 border-dashed">
+            <span className="h-2.5 w-2.5 rounded-full bg-primary/40 shrink-0" />
+            <span className="font-medium text-foreground">{translate('calendar.predicted')}</span>
+          </div>
+          <div className="flex items-center gap-2 rounded-xl bg-sage/10 p-2 border border-sage/20">
+            <span className="h-2.5 w-2.5 rounded-full bg-sage shrink-0" />
+            <span className="font-medium text-foreground">{translate('calendar.ovulation')}</span>
+          </div>
+          <div className="flex items-center gap-2 rounded-xl bg-sage/10 p-2 border border-sage/20">
+            <span className="h-2.5 w-2.5 rounded-full bg-sage/40 shrink-0" />
+            <span className="font-medium text-foreground">{translate('calendar.fertile_window')}</span>
+          </div>
         </div>
       </CardContent>
     </Card>
 
-    <a href="/app/log">
-      <Button className="w-full">{translate('calendar.add_log')}</Button>
+    <a href="/app/log" class="block">
+      <Button className="w-full h-11 text-xs font-semibold shadow-xs" size="md">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        {translate('calendar.add_log')}
+      </Button>
     </a>
   </div>
 </AppShell>

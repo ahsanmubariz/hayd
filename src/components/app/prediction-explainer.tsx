@@ -30,10 +30,10 @@ export function PredictionExplainer({
   const { t } = useTranslation();
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{t('explainer.how_calculated')}</CardTitle>
+      <CardHeader className="p-5 pb-2">
+        <CardTitle className="text-sm font-semibold tracking-tight">{t('explainer.how_calculated')}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="p-5 pt-1 space-y-2.5">
         {predictedNextPeriodDate && (
           <Row label={t('explainer.next_period')} value={predictedNextPeriodDate} />
         )}
@@ -64,7 +64,7 @@ export function PredictionExplainer({
         )}
         {confidenceReason && <p className="text-xs text-muted-foreground pt-1">{confidenceReason}</p>}
         {algorithmVersion && (
-          <p className="text-[10px] text-muted-foreground pt-1">{t('explainer.algorithm')}</p>
+          <p className="text-[10px] text-muted-foreground/80 pt-1 font-mono">{t('explainer.algorithm')}</p>
         )}
       </CardContent>
     </Card>
@@ -73,7 +73,7 @@ export function PredictionExplainer({
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between text-sm">
+    <div className="flex items-center justify-between text-xs py-1 border-b border-border/40 last:border-0">
       <span className="text-muted-foreground">{label}</span>
       <span className="font-medium text-foreground">{value}</span>
     </div>

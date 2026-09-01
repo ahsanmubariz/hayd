@@ -19,7 +19,7 @@ const navItems = [
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -32,22 +32,24 @@ const navItems = [
       })();
     </script>
   </head>
-  <body class="min-h-screen bg-background text-foreground antialiased">
-    <header class="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur-sm">
+  <body class="min-h-screen bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground">
+    <header class="sticky top-0 z-30 border-b border-border/80 bg-card/90 backdrop-blur-md">
       <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <!-- Left: brand + nav -->
         <div class="flex items-center gap-6">
           <a href="/admin" class="flex items-center gap-2 shrink-0">
-            <span class="text-xl font-bold text-primary">H</span>
-            <span class="text-sm font-semibold text-foreground hidden sm:inline">Hayd Admin</span>
+            <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 font-bold text-sm">
+              H
+            </div>
+            <span class="text-sm font-bold text-foreground tracking-tight hidden sm:inline">Hayd Admin</span>
           </a>
-          <nav class="flex items-center gap-1" aria-label="Admin">
+          <nav class="flex items-center gap-1" aria-label="Admin Navigation">
             {navItems.map((item) => (
               <a
                 href={item.href}
-                class={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                class={`rounded-xl px-3 py-1.5 text-xs font-semibold tracking-tight transition-all duration-150 ${
                   item.active
-                    ? 'bg-primary/10 text-primary'
+                    ? 'bg-primary/10 text-primary border border-primary/20'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
               >
@@ -61,18 +63,18 @@ const navItems = [
           <ThemeToggle client:load />
           <a
             href="/app"
-            class="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            class="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground shadow-2xs"
           >
             ← App
           </a>
           <a
             href="/logout"
-            class="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            class="rounded-xl px-3 py-1.5 text-xs font-medium text-destructive transition-all hover:bg-destructive/10"
           >
             Logout
           </a>
           <div class="flex items-center gap-2 ml-1">
-            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
+            <div class="flex h-8 w-8 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-xs font-bold text-primary">
               {user?.email?.charAt(0).toUpperCase() ?? 'A'}
             </div>
             <span class="hidden md:block text-xs text-muted-foreground max-w-[140px] truncate">{user?.email}</span>

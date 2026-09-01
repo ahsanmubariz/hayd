@@ -5,8 +5,9 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={clsx(
-        'rounded-2xl border border-border bg-card text-card-foreground',
-        'shadow-sm shadow-stone-900/5 transition-all duration-200',
+        'rounded-3xl border border-border/80 bg-card text-card-foreground',
+        'shadow-sm shadow-stone-900/5 transition-all duration-200 relative overflow-hidden',
+        'before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-[1px] before:bg-white/80 dark:before:bg-white/5',
         className,
       )}
       {...props}
@@ -17,7 +18,7 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
 export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={clsx('flex flex-col space-y-1 p-5 pb-3', className)}
+      className={clsx('flex flex-col space-y-1 p-5 pb-2.5', className)}
       {...props}
     />
   );
@@ -27,7 +28,7 @@ export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingEle
   return (
     <h3
       className={clsx(
-        'font-medium text-foreground tracking-tight text-base',
+        'font-semibold text-foreground tracking-tight text-sm md:text-base',
         className,
       )}
       {...props}
@@ -45,14 +46,15 @@ export function CardDescription({ className, ...props }: HTMLAttributes<HTMLPara
 }
 
 export function CardContent({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={clsx('p-5 pt-0', className)} {...props} />;
+  return <div className={clsx('p-5 pt-1', className)} {...props} />;
 }
 
 export function CardFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={clsx('flex items-center p-5 pt-0', className)}
+      className={clsx('flex items-center p-5 pt-2 border-t border-border/50', className)}
       {...props}
     />
   );
 }
+

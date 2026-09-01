@@ -35,55 +35,64 @@
 
 :root {
   color-scheme: light;
-  --glaze-sheen: rgba(255, 255, 255, 0.75);
+  --glaze-sheen: rgba(255, 255, 255, 0.9);
+  --glaze-inner-border: rgba(255, 255, 255, 0.7);
   --shadow-ceramic: 0 4px 20px -2px rgba(28, 25, 23, 0.05), 0 2px 6px -1px rgba(28, 25, 23, 0.03);
-  --shadow-dish: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 3px rgba(28, 25, 23, 0.04);
+  --shadow-dish: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(234, 227, 216, 0.4), 0 2px 8px -2px rgba(28, 25, 23, 0.04);
+  --shadow-float: 0 12px 36px -4px rgba(28, 25, 23, 0.08), 0 4px 12px -2px rgba(28, 25, 23, 0.04);
+  --ambient-subtle: radial-gradient(circle at 50% 0%, rgba(217, 74, 61, 0.03) 0%, transparent 60%);
 }
 
 .dark {
   color-scheme: dark;
-  --color-background: #131211;
+  --color-background: #121110;
   --color-foreground: #ede8e1;
   --color-card: #1c1a18;
   --color-card-foreground: #ede8e1;
   
   --color-primary: #e86356;
-  --color-primary-foreground: #131211;
+  --color-primary-foreground: #121110;
   
   --color-secondary: #272421;
   --color-secondary-foreground: #ede8e1;
   
   --color-accent: #e09384;
-  --color-accent-foreground: #131211;
+  --color-accent-foreground: #121110;
   
   --color-sage: #64a38b;
-  --color-sage-foreground: #131211;
+  --color-sage-foreground: #121110;
   
   --color-amber: #e29f4f;
-  --color-amber-foreground: #131211;
+  --color-amber-foreground: #121110;
   
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
   
-  --color-muted: #24211e;
+  --color-muted: #22201d;
   --color-muted-foreground: #a8a29e;
   
   --color-border: #2c2925;
   --color-ring: #e86356;
   
-  --glaze-sheen: rgba(255, 255, 255, 0.04);
-  --shadow-ceramic: 0 4px 24px -2px rgba(0, 0, 0, 0.35), 0 2px 8px -1px rgba(0, 0, 0, 0.25);
-  --shadow-dish: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 3px rgba(0, 0, 0, 0.4);
+  --glaze-sheen: rgba(255, 255, 255, 0.05);
+  --glaze-inner-border: rgba(255, 255, 255, 0.04);
+  --shadow-ceramic: 0 4px 24px -2px rgba(0, 0, 0, 0.45), 0 2px 8px -1px rgba(0, 0, 0, 0.35);
+  --shadow-dish: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-float: 0 16px 40px -4px rgba(0, 0, 0, 0.6), 0 4px 16px -2px rgba(0, 0, 0, 0.4);
+  --ambient-subtle: radial-gradient(circle at 50% 0%, rgba(232, 99, 86, 0.04) 0%, transparent 60%);
 }
 
 html, body {
   background-color: var(--color-background);
   color: var(--color-foreground);
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   min-height: 100vh;
-  letter-spacing: -0.015em;
+  min-height: 100dvh;
+  letter-spacing: -0.018em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-image: var(--ambient-subtle);
+  background-attachment: fixed;
 }
 
 /* Custom Selection & Focus */
@@ -94,8 +103,8 @@ html, body {
 
 /* Subtle Ceramic Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -112,7 +121,7 @@ html, body {
 .ceramic-card {
   background-color: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: 1.25rem;
+  border-radius: 1.5rem;
   box-shadow: var(--shadow-ceramic);
   position: relative;
   overflow: hidden;
@@ -123,6 +132,14 @@ html, body {
   border: 1px solid var(--color-border);
   border-radius: 1.5rem;
   box-shadow: var(--shadow-dish);
+  position: relative;
+}
+
+.ceramic-pill {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-dish);
+  border-radius: 9999px;
 }
 
 .phase-pill {
@@ -134,11 +151,18 @@ html, body {
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: -0.01em;
+  transition: all 150ms ease-out;
+}
+
+/* Tabular figures for numbers */
+.tabular-nums {
+  font-feature-settings: "tnum" 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }

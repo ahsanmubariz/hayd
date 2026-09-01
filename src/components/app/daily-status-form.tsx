@@ -79,7 +79,7 @@ export function DailyStatusForm({
       <Input
         type="number"
         name="painLevel"
-        label="Pain level (0–10)"
+        label="Pain level (0-10)"
         min={0}
         max={10}
         value={painLevel}
@@ -97,7 +97,7 @@ export function DailyStatusForm({
       <Input
         type="number"
         name="energyLevel"
-        label="Energy level (0–10)"
+        label="Energy level (0-10)"
         min={0}
         max={10}
         value={energyLevel}

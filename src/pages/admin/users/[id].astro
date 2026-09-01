@@ -62,38 +62,43 @@ if (Astro.request.method === 'POST') {
 ---
 
 <AdminShell title="User detail" activeRoute="users">
-  <div class="space-y-4">
+  <div class="space-y-4 max-w-xl select-none">
+    <div>
+      <h1 class="text-xl font-bold text-foreground tracking-tight">User Details</h1>
+      <p class="text-xs text-muted-foreground mt-0.5 font-mono">{targetUser.id}</p>
+    </div>
+
     {message && <Alert variant={message === 'Action failed' ? 'error' : 'success'}>{message}</Alert>}
 
     <Card>
-      <CardHeader>
-        <CardTitle>Account summary</CardTitle>
+      <CardHeader className="p-5 pb-2">
+        <CardTitle className="text-sm font-semibold tracking-tight">Account Summary</CardTitle>
       </CardHeader>
-      <CardContent class="space-y-2 text-sm">
-        <div class="flex items-center justify-between"><span class="text-muted-foreground">Email</span><span class="font-medium">{targetUser.email}</span></div>
-        <div class="flex items-center justify-between"><span class="text-muted-foreground">Role</span><span class="font-medium">{targetUser.role}</span></div>
-        <div class="flex items-center justify-between"><span class="text-muted-foreground">Status</span><UserStatusBadge status={targetUser.status} /></div>
-        <div class="flex items-center justify-between"><span class="text-muted-foreground">Created</span><span class="font-medium">{targetUser.created_at.slice(0, 10)}</span></div>
-        {profile && <div class="flex items-center justify-between"><span class="text-muted-foreground">Display name</span><span className="font-medium">{profile.display_name}</span></div>}
+      <CardContent className="p-5 pt-1 space-y-2 text-xs">
+        <div class="flex items-center justify-between py-1.5 border-b border-border/40"><span class="text-muted-foreground">Email</span><span class="font-semibold text-foreground">{targetUser.email}</span></div>
+        <div class="flex items-center justify-between py-1.5 border-b border-border/40"><span class="text-muted-foreground">Role</span><span class="font-semibold text-foreground capitalize">{targetUser.role}</span></div>
+        <div class="flex items-center justify-between py-1.5 border-b border-border/40"><span class="text-muted-foreground">Status</span><UserStatusBadge status={targetUser.status} /></div>
+        <div class="flex items-center justify-between py-1.5 border-b border-border/40"><span class="text-muted-foreground">Created</span><span class="font-semibold text-foreground tabular-nums">{targetUser.created_at.slice(0, 10)}</span></div>
+        {profile && <div class="flex items-center justify-between py-1.5"><span class="text-muted-foreground">Display name</span><span class="font-semibold text-foreground">{profile.display_name}</span></div>}
       </CardContent>
     </Card>
 
     <Card>
-      <CardHeader>
-        <CardTitle>Activity</CardTitle>
+      <CardHeader className="p-5 pb-2">
+        <CardTitle className="text-sm font-semibold tracking-tight">Activity Telemetry</CardTitle>
       </CardHeader>
-      <CardContent class="space-y-2 text-sm">
-        <div class="flex items-center justify-between"><span class="text-muted-foreground">Period logs</span><span class="font-medium">{periodLogs.length}</span></div>
-        <div class="flex items-center justify-between"><span class="text-muted-foreground">Daily logs</span><span class="font-medium">{dailyLogs.length}</span></div>
-        <div class="flex items-center justify-between"><span class="text-muted-foreground">Last prediction</span><span class="font-medium">{prediction?.predicted_next_period_date ?? '—'}</span></div>
+      <CardContent className="p-5 pt-1 space-y-2 text-xs">
+        <div class="flex items-center justify-between py-1.5 border-b border-border/40"><span class="text-muted-foreground">Period logs</span><span class="font-semibold text-foreground tabular-nums">{periodLogs.length}</span></div>
+        <div class="flex items-center justify-between py-1.5 border-b border-border/40"><span class="text-muted-foreground">Daily logs</span><span class="font-semibold text-foreground tabular-nums">{dailyLogs.length}</span></div>
+        <div class="flex items-center justify-between py-1.5"><span class="text-muted-foreground">Last prediction</span><span class="font-semibold text-foreground tabular-nums">{prediction?.predicted_next_period_date ?? '-'}</span></div>
       </CardContent>
     </Card>
 
     <Card>
-      <CardHeader>
-        <CardTitle>Actions</CardTitle>
+      <CardHeader className="p-5 pb-2">
+        <CardTitle className="text-sm font-semibold tracking-tight">Account Actions</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-5 pt-1">
         <input type="hidden" name="_csrf" value={csrfToken} />
         <UserActionMenu
           user={targetUser}
@@ -104,7 +109,8 @@ if (Astro.request.method === 'POST') {
             const form = new FormData();
             form.append('action', 'reset_password');
             form.append('newPassword', newPassword);
-            form.append('_csrf', document.querySelector('input[name="_csrf"]').value);
+            const csrfEl = document.querySelector('input[name="_csrf"]') as HTMLInputElement;
+            if (csrfEl) form.append('_csrf', csrfEl.value);
             await fetch(window.location.pathname, { method: 'POST', body: form });
             window.location.reload();
           }}

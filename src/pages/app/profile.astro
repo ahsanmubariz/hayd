@@ -61,24 +61,24 @@ if (Astro.request.method === 'POST') {
 ---
 
 <AppShell title="Profile" activeRoute="profile" headerTitle={translate('nav.profile')} headerSubtitle={translate('profile.manage_account')}>
-  <div class="space-y-4 p-4 pb-10">
+  <div class="space-y-4 p-4 pb-12 select-none">
     {success && <Alert variant="success">{success}</Alert>}
     {errors.form && <Alert variant="error">{errors.form}</Alert>}
 
     {/* Account Identity Card */}
-    <Card className="border-border/80 bg-gradient-to-b from-card to-muted/20 shadow-xs">
+    <Card className="border-border/80 bg-gradient-to-b from-card via-card to-muted/20 shadow-xs">
       <CardContent className="p-5">
         <div class="flex items-center gap-3.5">
-          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-lg font-bold text-primary shadow-xs">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10 text-lg font-bold text-primary shadow-xs">
             {user.email.charAt(0).toUpperCase()}
           </div>
           <div class="min-w-0 flex-1">
             <p class="text-sm font-bold text-foreground tracking-tight truncate">{profile?.display_name || user.email.split('@')[0]}</p>
             <p class="text-xs text-muted-foreground truncate">{user.email}</p>
             <div class="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
-              <span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary capitalize border border-primary/20">{user.role}</span>
+              <span class="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 font-semibold text-primary capitalize border border-primary/20">{user.role}</span>
               <span>·</span>
-              <span>{translate('profile.member_since')} {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+              <span class="font-medium">{translate('profile.member_since')} {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
             </div>
           </div>
         </div>
@@ -93,7 +93,7 @@ if (Astro.request.method === 'POST') {
         <CardHeader className="p-5 pb-2">
           <CardTitle className="text-sm font-semibold tracking-tight">{translate('profile.personal_info')}</CardTitle>
         </CardHeader>
-        <CardContent className="p-5 pt-1 space-y-3">
+        <CardContent className="p-5 pt-1 space-y-3.5">
           <Input
             name="displayName"
             label={translate('profile.display_name')}
@@ -120,7 +120,7 @@ if (Astro.request.method === 'POST') {
         <CardHeader className="p-5 pb-2">
           <CardTitle className="text-sm font-semibold tracking-tight">{translate('profile.change_password')}</CardTitle>
         </CardHeader>
-        <CardContent className="p-5 pt-1 space-y-3">
+        <CardContent className="p-5 pt-1 space-y-3.5">
           <Input
             type="password"
             name="currentPassword"
@@ -144,8 +144,8 @@ if (Astro.request.method === 'POST') {
     <Card>
       <CardHeader className="p-5 pb-2">
         <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 2l-2 2m-1.5 1.5L14 9l-1.5-1.5" />
               <circle cx="7.5" cy="15.5" r="5.5" />
             </svg>
@@ -153,7 +153,7 @@ if (Astro.request.method === 'POST') {
           <CardTitle className="text-sm font-semibold tracking-tight">Passkeys (WebAuthn)</CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="p-5 pt-1 space-y-3">
+      <CardContent className="p-5 pt-1 space-y-3.5">
         <p className="text-xs text-muted-foreground leading-relaxed">
           Sign in instantly using biometrics (Touch ID, Face ID), security keys, or device PIN.
         </p>
@@ -178,7 +178,7 @@ if (Astro.request.method === 'POST') {
                   <input type="hidden" name="action" value="delete-passkey" />
                   <input type="hidden" name="passkeyId" value={pk.id} />
                   <input type="hidden" name="_csrf" value={csrfToken} />
-                  <Button type="submit" variant="destructive" size="sm" className="h-7 px-2.5 text-[10px]">
+                  <Button type="submit" variant="destructive" size="sm" className="h-7 px-2.5 text-[10px] font-semibold">
                     Delete
                   </Button>
                 </form>
@@ -186,16 +186,16 @@ if (Astro.request.method === 'POST') {
             ))}
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground italic bg-muted/30 p-3 rounded-xl border border-border/40 text-center">No passkeys registered yet.</p>
+          <p className="text-xs text-muted-foreground italic bg-muted/30 p-3 rounded-2xl border border-border/40 text-center">No passkeys registered yet.</p>
         )}
 
-        <Button id="register-passkey-btn" type="button" variant="outline" className="w-full h-10 text-xs font-semibold shadow-xs">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <Button id="register-passkey-btn" type="button" variant="outline" className="w-full h-10 text-xs font-semibold shadow-2xs">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 5v14M5 12h14"/>
           </svg>
           Register New Passkey
         </Button>
-        <div id="passkey-error" class="hidden text-xs text-destructive p-2 rounded-xl bg-destructive/10 border border-destructive/20 text-center"></div>
+        <div id="passkey-error" class="hidden text-xs text-destructive p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-center font-medium"></div>
       </CardContent>
     </Card>
 

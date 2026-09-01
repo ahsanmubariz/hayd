@@ -9,7 +9,7 @@ interface KpiCardsProps {
 
 export function KpiCards({ totalUsers, activeUsers, inactiveUsers, newUsers }: KpiCardsProps) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 select-none">
       <KpiCard label="Total Users" value={totalUsers} />
       <KpiCard label="Active" value={activeUsers} tone="success" />
       <KpiCard label="Inactive" value={inactiveUsers} tone="warning" />
@@ -34,13 +34,14 @@ function KpiCard({
         ? 'text-amber'
         : 'text-foreground';
   return (
-    <Card className="hover:border-primary/20 transition-all shadow-xs">
+    <Card className="hover:border-primary/30 transition-all shadow-xs">
       <CardHeader className="p-4 pb-1">
-        <CardTitle className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</CardTitle>
+        <CardTitle className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</CardTitle>
       </CardHeader>
       <CardContent className="p-4 pt-1">
-        <p className={`text-2xl font-bold tracking-tight ${toneClass}`}>{value}</p>
+        <p className={`text-2xl font-bold tracking-tight tabular-nums ${toneClass}`}>{value}</p>
       </CardContent>
     </Card>
   );
 }
+

@@ -152,7 +152,7 @@ const translations = {
   'upcoming.today': { id: 'Hari ini', en: 'Today' },
   'upcoming.tomorrow': { id: 'Besok', en: 'tomorrow' },
   'upcoming.away': { id: 'lagi', en: 'away' },
-  'upcoming.low_confidence': { id: 'Keyakinan rendah — catat lebih banyak menstruasi untuk akurasi lebih baik', en: 'Low confidence -- log more periods for better accuracy' },
+  'upcoming.low_confidence': { id: 'Keyakinan rendah - catat lebih banyak menstruasi untuk akurasi lebih baik', en: 'Low confidence - log more periods for better accuracy' },
 
   // ===== Phase Timeline =====
   'timeline.period_start': { id: 'Mulai menstruasi', en: 'Period start' },

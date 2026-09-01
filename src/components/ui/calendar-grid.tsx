@@ -70,7 +70,7 @@ export function CalendarGrid({
   const weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
   return (
-    <div className="select-none p-1">
+    <div className="select-none p-1.5">
       {/* Month navigation */}
       <div className="flex items-center justify-between mb-3 px-1">
         <button
@@ -79,13 +79,13 @@ export function CalendarGrid({
           className="flex h-8 w-8 items-center justify-center rounded-xl border border-border/80 bg-card text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95 transition-all shadow-2xs"
           aria-label={t('calendar_grid.prev_month')}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
         <div className="text-center">
           <h3 className="text-sm font-semibold text-foreground tracking-tight">
-            {MONTH_NAMES[month]} {year}
+            {MONTH_NAMES[month]} <span className="font-normal text-muted-foreground">{year}</span>
           </h3>
         </div>
         <button
@@ -94,14 +94,14 @@ export function CalendarGrid({
           className="flex h-8 w-8 items-center justify-center rounded-xl border border-border/80 bg-card text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95 transition-all shadow-2xs"
           aria-label={t('calendar_grid.next_month')}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 18l6-6-6-6" />
           </svg>
         </button>
       </div>
 
       {/* Weekday headers */}
-      <div className="grid grid-cols-7 text-center text-[11px] font-medium text-muted-foreground/80 mb-1">
+      <div className="grid grid-cols-7 text-center text-[10px] font-semibold tracking-wider text-muted-foreground/70 uppercase mb-1">
         {weekdays.map((w, i) => (
           <div key={i} className="py-1">{w}</div>
         ))}
@@ -122,29 +122,32 @@ export function CalendarGrid({
               type="button"
               onClick={() => onSelect(dateStr)}
               className={clsx(
-                'relative aspect-square rounded-xl text-xs font-medium transition-all duration-150',
+                'relative aspect-square rounded-2xl text-xs font-medium transition-all duration-150',
                 'flex flex-col items-center justify-center cursor-pointer',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
                 // Base styles
                 !mark && !isToday && !isSelected && 'hover:bg-muted/60 text-foreground',
                 // Mark styles
-                mark === 'period' && 'bg-primary text-primary-foreground font-semibold shadow-xs',
-                mark === 'predicted' && 'bg-primary/15 text-primary border border-primary/30 border-dashed',
-                mark === 'ovulation' && 'bg-sage text-sage-foreground font-semibold shadow-xs',
-                mark === 'fertile' && 'bg-sage/15 text-sage border border-sage/30',
+                mark === 'period' && 'bg-primary text-primary-foreground font-semibold shadow-xs shadow-primary/20 hover:brightness-105 active:scale-95',
+                mark === 'predicted' && 'bg-primary/10 text-primary border border-primary/30 border-dashed hover:bg-primary/15 active:scale-95',
+                mark === 'ovulation' && 'bg-sage text-sage-foreground font-semibold shadow-xs shadow-sage/20 hover:brightness-105 active:scale-95',
+                mark === 'fertile' && 'bg-sage/10 text-sage border border-sage/30 hover:bg-sage/15 active:scale-95',
                 // Today marker
-                isToday && !mark && 'border-2 border-primary text-primary font-semibold',
+                isToday && !mark && 'border border-primary/50 text-primary font-bold bg-primary/5',
                 // Selected marker
-                isSelected && 'ring-2 ring-foreground ring-offset-1 ring-offset-background scale-105 z-10',
+                isSelected && 'ring-2 ring-foreground ring-offset-2 ring-offset-background scale-105 z-10 font-bold',
               )}
             >
-              <span>{day}</span>
-              {/* Optional tiny indicator dot below number */}
+              <span className="tabular-nums">{day}</span>
+              {/* Subtle indicator dot below number */}
               {mark === 'period' && (
-                <span className="absolute bottom-1 h-1 w-1 rounded-full bg-white/80" />
+                <span className="absolute bottom-1.5 h-1 w-1 rounded-full bg-white/90" />
               )}
               {mark === 'ovulation' && (
-                <span className="absolute bottom-1 h-1 w-1 rounded-full bg-white/80" />
+                <span className="absolute bottom-1.5 h-1 w-1 rounded-full bg-white/90" />
+              )}
+              {isToday && !mark && (
+                <span className="absolute bottom-1.5 h-1 w-1 rounded-full bg-primary" />
               )}
             </button>
           );
@@ -153,3 +156,4 @@ export function CalendarGrid({
     </div>
   );
 }
+

@@ -14,7 +14,7 @@ const { title = 'Sign in · Hayd' } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="description" content="Hayd — private, calm, calendar-based cycle tracker." />
+    <meta name="description" content="Hayd - private, calm, calendar-based cycle tracker." />
     <title>{title}</title>
     <script is:inline>
       (function() {
@@ -24,14 +24,14 @@ const { title = 'Sign in · Hayd' } = Astro.props;
       })();
     </script>
   </head>
-  <body class="min-h-screen bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground">
-    <main class="mx-auto flex min-h-screen max-w-sm flex-col items-center justify-center px-4 py-8">
+  <body class="min-h-[100dvh] bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground">
+    <main class="mx-auto flex min-h-[100dvh] max-w-sm flex-col items-center justify-center px-4 py-8 select-none">
       {/* Ceramic Logo & Brand Header */}
-      <div class="mb-6 flex flex-col items-center text-center gap-1.5">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-xs shadow-stone-900/5 mb-1">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <div class="mb-7 flex flex-col items-center text-center gap-2">
+        <div class="flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10 text-primary shadow-sm shadow-primary/15 mb-1 relative before:absolute before:inset-x-0 before:top-0 before:h-[1px] before:bg-white/40">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="9" />
-            <path d="M12 3a9 9 0 0 1 0 18v-18z" fill="currentColor" fillOpacity="0.2" />
+            <path d="M12 3a9 9 0 0 1 0 18v-18z" fill="currentColor" fill-opacity="0.25" />
           </svg>
         </div>
         <h1 class="text-2xl font-bold tracking-tight text-foreground">Hayd</h1>
@@ -44,10 +44,11 @@ const { title = 'Sign in · Hayd' } = Astro.props;
         <slot />
       </div>
 
-      <footer class="mt-8 text-center text-[11px] text-muted-foreground/70">
+      <footer class="mt-8 text-center text-[11px] text-muted-foreground/70 font-medium">
         <p>100% Private · Zero Tracking · WebCrypto Secured</p>
       </footer>
     </main>
     <PwaPrompt client:load />
   </body>
 </html>
+

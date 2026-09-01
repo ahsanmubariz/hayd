@@ -7,20 +7,36 @@ export const prerender = false;
 ---
 
 <AdminShell title="Settings" activeRoute="settings">
-  <div class="space-y-4">
+  <div class="space-y-4 select-none">
+    <div>
+      <h1 class="text-xl font-bold text-foreground tracking-tight">System Settings</h1>
+      <p class="text-xs text-muted-foreground mt-0.5">Core engine configuration and runtime parameters</p>
+    </div>
+
     <Card>
-      <CardHeader>
-        <CardTitle>Application</CardTitle>
+      <CardHeader className="p-5 pb-2">
+        <CardTitle className="text-sm font-semibold tracking-tight">Application Engine</CardTitle>
       </CardHeader>
-      <CardContent class="text-sm text-muted-foreground space-y-1">
-        <p>Algorithm: <span class="text-foreground">v1-calendar-rhythm</span></p>
-        <p>Confidence bands: <span class="text-foreground">low, medium</span></p>
-        <p>Session TTL: <span class="text-foreground">7 days</span></p>
+      <CardContent className="p-5 pt-1 text-xs text-muted-foreground space-y-2">
+        <div class="flex items-center justify-between py-1.5 border-b border-border/40">
+          <span>Prediction Algorithm</span>
+          <span class="font-semibold text-foreground font-mono">v1-calendar-rhythm</span>
+        </div>
+        <div class="flex items-center justify-between py-1.5 border-b border-border/40">
+          <span>Confidence Bands</span>
+          <span class="font-semibold text-foreground">low, medium</span>
+        </div>
+        <div class="flex items-center justify-between py-1.5">
+          <span>Session Lifetime</span>
+          <span class="font-semibold text-foreground">90 days</span>
+        </div>
       </CardContent>
     </Card>
+
     <Alert variant="info">
       Settings are intentionally minimal. Hayd stores only the data you enter and does not integrate
       third-party trackers on authenticated pages.
     </Alert>
   </div>
 </AdminShell>
+

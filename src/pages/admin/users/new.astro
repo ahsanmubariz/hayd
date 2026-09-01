@@ -1,5 +1,6 @@
 ---
 import AdminShell from '@/layouts/AdminShell.astro';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
@@ -38,21 +39,41 @@ if (Astro.request.method === 'POST') {
 ---
 
 <AdminShell title="Create user" activeRoute="users">
-  <div class="space-y-4">
+  <div class="space-y-4 max-w-lg select-none">
+    <div>
+      <h1 class="text-xl font-bold text-foreground tracking-tight">Register New User</h1>
+      <p class="text-xs text-muted-foreground mt-0.5">Provision an account with temporary credentials</p>
+    </div>
+
     {success ? (
-      <Alert variant="success">User created. They can sign in with the temporary password.</Alert>
+      <Alert variant="success">User created successfully. They can now sign in with the temporary password.</Alert>
     ) : (
-      <form method="POST" class="space-y-3 rounded-2xl border border-border bg-card p-4">
-        <input type="hidden" name="_csrf" value={csrfToken} />
-        <Input type="email" name="email" label="Email" required error={errors.email} />
-        <Input type="text" name="displayName" label="Display name" required error={errors.displayName} />
-        <Input type="password" name="password" label="Temporary password" required error={errors.password} />
-        <select name="role" class="h-10 w-full rounded-xl border border-border bg-card px-3 text-sm">
-          <option value="user">User</option>
-          <option value="admin">Admin</option>
-        </select>
-        <Button type="submit">Create user</Button>
-      </form>
+      <Card>
+        <CardHeader className="p-5 pb-2">
+          <CardTitle className="text-sm font-semibold tracking-tight">Account Credentials</CardTitle>
+        </CardHeader>
+        <CardContent className="p-5 pt-1">
+          <form method="POST" class="space-y-3.5">
+            <input type="hidden" name="_csrf" value={csrfToken} />
+            <Input type="email" name="email" label="Email address" required error={errors.email} placeholder="user@example.com" />
+            <Input type="text" name="displayName" label="Display name" required error={errors.displayName} placeholder="Full Name" />
+            <Input type="password" name="password" label="Temporary password" required error={errors.password} placeholder="••••••••" />
+            <div class="flex flex-col gap-1.5">
+              <label for="role" class="text-xs font-semibold text-foreground">Role</label>
+              <select name="role" id="role" class="h-10 w-full rounded-2xl border border-border bg-card px-3.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring shadow-2xs cursor-pointer">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="pt-2">
+              <Button type="submit" className="w-full h-10 text-xs font-semibold shadow-xs">
+                Create User
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     )}
   </div>
 </AdminShell>
+

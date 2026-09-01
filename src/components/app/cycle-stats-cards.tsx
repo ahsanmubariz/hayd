@@ -17,43 +17,44 @@ export function CycleStatsCards({
 }: CycleStatsCardsProps) {
   const { t } = useTranslation();
   return (
-    <div className="grid grid-cols-2 gap-3">
-      <Card className="hover:border-primary/20">
+    <div className="grid grid-cols-2 gap-3 select-none">
+      <Card className="hover:border-primary/30 transition-all">
         <CardHeader className="p-4 pb-1">
-          <CardTitle className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t('stats.avg_cycle')}</CardTitle>
+          <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t('stats.avg_cycle')}</CardTitle>
         </CardHeader>
         <CardContent className="p-4 pt-1">
-          <p className="text-2xl font-bold tracking-tight text-foreground">
-            {averageCycleLength ? `${averageCycleLength}d` : '—'}
+          <p className="text-2xl font-bold tracking-tight text-foreground tabular-nums">
+            {averageCycleLength ? `${averageCycleLength}d` : '-'}
           </p>
         </CardContent>
       </Card>
-      <Card className="hover:border-primary/20">
+      <Card className="hover:border-primary/30 transition-all">
         <CardHeader className="p-4 pb-1">
-          <CardTitle className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t('stats.avg_period')}</CardTitle>
+          <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t('stats.avg_period')}</CardTitle>
         </CardHeader>
         <CardContent className="p-4 pt-1">
-          <p className="text-2xl font-bold tracking-tight text-foreground">
-            {averagePeriodLength ? `${averagePeriodLength}d` : '—'}
+          <p className="text-2xl font-bold tracking-tight text-foreground tabular-nums">
+            {averagePeriodLength ? `${averagePeriodLength}d` : '-'}
           </p>
         </CardContent>
       </Card>
-      <Card className="hover:border-primary/20">
+      <Card className="hover:border-primary/30 transition-all">
         <CardHeader className="p-4 pb-1">
-          <CardTitle className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t('stats.cycles_tracked')}</CardTitle>
+          <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t('stats.cycles_tracked')}</CardTitle>
         </CardHeader>
         <CardContent className="p-4 pt-1">
-          <p className="text-2xl font-bold tracking-tight text-foreground">{totalCycles ?? 0}</p>
+          <p className="text-2xl font-bold tracking-tight text-foreground tabular-nums">{totalCycles ?? 0}</p>
         </CardContent>
       </Card>
-      <Card className="hover:border-primary/20">
+      <Card className="hover:border-primary/30 transition-all">
         <CardHeader className="p-4 pb-1">
-          <CardTitle className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t('stats.trend')}</CardTitle>
+          <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t('stats.trend')}</CardTitle>
         </CardHeader>
         <CardContent className="p-4 pt-1 flex items-center">
-          {trendLabel ? <Badge tone="muted">{trendLabel}</Badge> : <span className="text-sm font-medium text-muted-foreground">—</span>}
+          {trendLabel ? <Badge tone="muted">{trendLabel}</Badge> : <span className="text-sm font-medium text-muted-foreground">-</span>}
         </CardContent>
       </Card>
     </div>
   );
 }
+

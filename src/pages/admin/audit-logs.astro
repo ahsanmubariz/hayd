@@ -9,10 +9,14 @@ const logs = await listAuditLogs(100);
 ---
 
 <AdminShell title="Audit logs" activeRoute="audit">
-  <div class="space-y-4">
-    <p class="text-sm text-muted-foreground">
-      Append-only record of admin actions. Health note contents are never logged here.
-    </p>
+  <div class="space-y-4 select-none">
+    <div>
+      <h1 class="text-xl font-bold text-foreground tracking-tight">Audit Logs</h1>
+      <p class="text-xs text-muted-foreground mt-0.5">
+        Append-only record of admin operations. Health note contents and sensitive personal data are never logged.
+      </p>
+    </div>
     <AuditTable logs={logs} />
   </div>
 </AdminShell>
+

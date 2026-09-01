@@ -47,9 +47,9 @@ export function CycleRing({
   }
 
   // SVG Geometry
-  const size = 210;
-  const strokeWidth = 10;
-  const radius = (size - strokeWidth) / 2 - 6;
+  const size = 220;
+  const strokeWidth = 11;
+  const radius = (size - strokeWidth) / 2 - 8;
   const circumference = 2 * Math.PI * radius;
   const progress = Math.min(Math.max(cycleDay / cycleLength, 0.04), 1);
   const dashOffset = circumference * (1 - progress);
@@ -66,24 +66,37 @@ export function CycleRing({
   const currentStroke = phaseColors[phaseTone];
 
   return (
-    <div className="flex flex-col items-center py-2">
+    <div className="flex flex-col items-center py-2 select-none">
       {/* Outer Ceramic Disc Container */}
       <div
-        className="relative flex items-center justify-center rounded-full p-2 bg-gradient-to-b from-card to-muted/40 border border-border/80 shadow-md shadow-stone-900/5"
-        style={{ width: size + 16, height: size + 16 }}
+        className="relative flex items-center justify-center rounded-full p-2.5 bg-gradient-to-b from-card via-card to-muted/40 border border-border/80 shadow-md shadow-stone-900/5 relative overflow-hidden before:pointer-events-none before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-b before:from-white/60 before:to-transparent dark:before:from-white/5"
+        style={{ width: size + 20, height: size + 20 }}
       >
         <svg width={size} height={size} className="transform -rotate-90">
           <defs>
             <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor={currentStroke} stopOpacity="1" />
-              <stop offset="100%" stopColor={currentStroke} stopOpacity="0.75" />
+              <stop offset="70%" stopColor={currentStroke} stopOpacity="0.9" />
+              <stop offset="100%" stopColor={currentStroke} stopOpacity="0.7" />
             </linearGradient>
-            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor={currentStroke} floodOpacity="0.3" />
+            <filter id="ringGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor={currentStroke} floodOpacity="0.25" />
             </filter>
           </defs>
 
-          {/* Background subtle ceramic orbit track */}
+          {/* Outer dashed orbit track */}
+          <circle
+            cx={center}
+            cy={center}
+            r={radius + 6}
+            fill="none"
+            stroke="var(--color-border)"
+            strokeWidth="1"
+            strokeDasharray="2 4"
+            className="opacity-60"
+          />
+
+          {/* Background ceramic groove track */}
           <circle
             cx={center}
             cy={center}
@@ -91,8 +104,7 @@ export function CycleRing({
             fill="none"
             stroke="var(--color-muted)"
             strokeWidth={strokeWidth}
-            strokeDasharray="4 6"
-            className="opacity-70"
+            className="opacity-80"
           />
 
           {/* Active Phase Arc */}
@@ -102,54 +114,55 @@ export function CycleRing({
             r={radius}
             fill="none"
             stroke="url(#ringGradient)"
-            strokeWidth={strokeWidth + 1}
+            strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={dashOffset}
-            filter="url(#glow)"
+            filter="url(#ringGlow)"
             className="transition-all duration-1000 ease-out"
           />
         </svg>
 
-        {/* Center Ceramic Plate */}
-        <div className="absolute inset-5 flex flex-col items-center justify-center rounded-full bg-card border border-border/60 shadow-inner">
-          <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground/80">
+        {/* Center Ceramic Plate with Inset Glaze */}
+        <div className="absolute inset-6 flex flex-col items-center justify-center rounded-full bg-card border border-border/70 shadow-inner overflow-hidden before:pointer-events-none before:absolute before:inset-0 before:bg-radial before:from-white/40 before:to-transparent dark:before:from-white/5">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/80">
             {t('ring.cycle_day')}
           </span>
           <div className="flex items-baseline gap-0.5 mt-0.5">
-            <span className="text-4xl font-bold tracking-tighter text-foreground">
+            <span className="text-4xl font-bold tracking-tighter text-foreground tabular-nums">
               {cycleDay}
             </span>
-            <span className="text-xs text-muted-foreground/70 font-medium">
+            <span className="text-xs text-muted-foreground/70 font-medium tabular-nums">
               /{cycleLength}
             </span>
           </div>
           
-          <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-muted/60 text-foreground border border-border/60">
+          <div className="mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-muted/60 text-foreground border border-border/70 shadow-2xs">
             <span
               className="h-1.5 w-1.5 rounded-full animate-pulse"
               style={{ backgroundColor: currentStroke }}
             />
-            <span className="truncate max-w-[110px]">{phaseLabel}</span>
+            <span className="truncate max-w-[115px]">{phaseLabel}</span>
           </div>
         </div>
       </div>
 
       {/* Auxiliary Status Pill */}
       {daysUntil > 0 && (
-        <div className="mt-3 flex items-center gap-1.5 rounded-full bg-card border border-border/80 px-3 py-1 text-xs text-muted-foreground shadow-2xs">
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+        <div className="mt-3.5 flex items-center gap-1.5 rounded-full bg-card border border-border/80 px-3.5 py-1 text-xs text-muted-foreground shadow-2xs">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
-          <span>{t('ring.next_period_in', daysUntil)}</span>
+          <span className="font-medium">{t('ring.next_period_in', daysUntil)}</span>
         </div>
       )}
       {daysUntil === 0 && !isInPeriod && (
-        <div className="mt-3 flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-medium text-primary shadow-2xs">
+        <div className="mt-3.5 flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3.5 py-1 text-xs font-semibold text-primary shadow-2xs">
           <span>{t('ring.expected_today')}</span>
         </div>
       )}
     </div>
   );
 }
+

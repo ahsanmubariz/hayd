@@ -119,19 +119,19 @@ const moods = [
   showBack
   backHref="/app"
 >
-  <div class="space-y-4 p-4 pb-8">
+  <div class="space-y-4 p-4 pb-10 select-none">
     {message && (
       <Alert variant={messageType === 'error' ? 'error' : 'success'}>{message}</Alert>
     )}
 
     {/* Tab Toggle Pill */}
-    <div class="flex items-center rounded-2xl border border-border bg-card p-1.5 shadow-2xs">
+    <div class="flex items-center rounded-2xl border border-border/80 bg-card p-1.5 shadow-2xs">
       <button
         type="button"
         id="tab-status"
         onclick="switchTab('status')"
         class={`flex-1 rounded-xl py-2 text-xs font-semibold tracking-tight transition-all duration-150 ${
-          tab === 'status' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
+          tab === 'status' ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
         }`}
       >
         {translate('log.daily_status_tab')}
@@ -141,7 +141,7 @@ const moods = [
         id="tab-period"
         onclick="switchTab('period')"
         class={`flex-1 rounded-xl py-2 text-xs font-semibold tracking-tight transition-all duration-150 ${
-          tab === 'period' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
+          tab === 'period' ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
         }`}
       >
         {translate('log.period_tab')}
@@ -157,20 +157,20 @@ const moods = [
         <Card className="space-y-4 p-5">
           <!-- Date Selector -->
           <div class="flex flex-col gap-1.5">
-            <label for="logDate-status" class="text-xs font-medium text-foreground tracking-tight">{translate('log.date')}</label>
+            <label for="logDate-status" class="text-xs font-semibold text-foreground tracking-tight">{translate('log.date')}</label>
             <input
               type="date"
               id="logDate-status"
               name="logDate"
               value={logDate}
               onchange="window.location.href='/app/log?date='+this.value"
-              class="h-10 w-full rounded-xl border border-border bg-card px-3.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              class="h-10 w-full rounded-xl border border-border bg-card px-3.5 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring shadow-2xs"
             />
           </div>
 
           <!-- Bleeding Status -->
           <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-medium text-foreground tracking-tight">{translate('log.bleeding_status')}</label>
+            <label class="text-xs font-semibold text-foreground tracking-tight">{translate('log.bleeding_status')}</label>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
                 { val: '', label: 'None' },
@@ -179,7 +179,7 @@ const moods = [
                 { val: 'medium', label: translate('log.medium') },
                 { val: 'heavy', label: translate('log.heavy') },
               ].filter(x => x.val).map((opt) => (
-                <label class="relative flex items-center justify-center rounded-xl border border-border bg-card p-2.5 text-xs font-medium cursor-pointer hover:bg-muted/60 transition-all has-checked:border-primary has-checked:bg-primary/10 has-checked:text-primary">
+                <label class="relative flex items-center justify-center rounded-2xl border border-border/80 bg-card p-2.5 text-xs font-semibold cursor-pointer hover:bg-muted/60 transition-all has-checked:border-primary has-checked:bg-primary/10 has-checked:text-primary active:scale-[0.98] shadow-2xs">
                   <input
                     type="radio"
                     name="bleedingStatus"
@@ -194,10 +194,10 @@ const moods = [
           </div>
 
           <!-- Pain Level Slider (0-10) -->
-          <div class="flex flex-col gap-1.5">
+          <div class="flex flex-col gap-1.5 rounded-2xl bg-muted/30 p-3 border border-border/60">
             <div class="flex items-center justify-between">
-              <label for="painRange" class="text-xs font-medium text-foreground tracking-tight">{translate('log.pain_level')}</label>
-              <span id="painDisplay" class="text-xs font-bold text-primary">
+              <label for="painRange" class="text-xs font-semibold text-foreground tracking-tight">{translate('log.pain_level')}</label>
+              <span id="painDisplay" class="text-xs font-bold text-primary tabular-nums">
                 {existingStatus?.pain_level != null ? `${existingStatus.pain_level}/10` : '0/10'}
               </span>
             </div>
@@ -209,16 +209,16 @@ const moods = [
               max="10"
               value={existingStatus?.pain_level ?? 0}
               oninput="document.getElementById('painDisplay').textContent = this.value + '/10'"
-              class="w-full accent-primary h-2 bg-muted rounded-lg cursor-pointer"
+              class="w-full accent-primary h-2 bg-muted rounded-lg cursor-pointer my-1"
             />
             <p class="text-[11px] text-muted-foreground">{translate('log.pain_help')}</p>
           </div>
 
           <!-- Energy Level Slider (0-10) -->
-          <div class="flex flex-col gap-1.5">
+          <div class="flex flex-col gap-1.5 rounded-2xl bg-muted/30 p-3 border border-border/60">
             <div class="flex items-center justify-between">
-              <label for="energyRange" class="text-xs font-medium text-foreground tracking-tight">{translate('log.energy_level')}</label>
-              <span id="energyDisplay" class="text-xs font-bold text-amber">
+              <label for="energyRange" class="text-xs font-semibold text-foreground tracking-tight">{translate('log.energy_level')}</label>
+              <span id="energyDisplay" class="text-xs font-bold text-amber tabular-nums">
                 {existingStatus?.energy_level != null ? `${existingStatus.energy_level}/10` : '5/10'}
               </span>
             </div>
@@ -230,17 +230,17 @@ const moods = [
               max="10"
               value={existingStatus?.energy_level ?? 5}
               oninput="document.getElementById('energyDisplay').textContent = this.value + '/10'"
-              class="w-full accent-amber h-2 bg-muted rounded-lg cursor-pointer"
+              class="w-full accent-amber h-2 bg-muted rounded-lg cursor-pointer my-1"
             />
             <p class="text-[11px] text-muted-foreground">{translate('log.energy_help')}</p>
           </div>
 
           <!-- Mood Pebble Selector -->
           <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-medium text-foreground tracking-tight">{translate('log.mood')}</label>
-            <div class="flex flex-wrap gap-1.5">
+            <label class="text-xs font-semibold text-foreground tracking-tight">{translate('log.mood')}</label>
+            <div class="flex flex-wrap gap-2">
               {moods.map((m) => (
-                <label class="relative flex items-center rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium cursor-pointer hover:bg-muted/60 transition-all has-checked:border-accent has-checked:bg-accent/15 has-checked:text-foreground">
+                <label class="relative flex items-center rounded-full border border-border/80 bg-card px-3.5 py-1.5 text-xs font-semibold cursor-pointer hover:bg-muted/60 transition-all has-checked:border-accent has-checked:bg-accent/15 has-checked:text-foreground active:scale-[0.98] shadow-2xs">
                   <input
                     type="radio"
                     name="mood"
@@ -256,14 +256,14 @@ const moods = [
 
           <!-- Notes -->
           <div class="flex flex-col gap-1.5">
-            <label for="notes-status" class="text-xs font-medium text-foreground tracking-tight">{translate('log.notes')}</label>
+            <label for="notes-status" class="text-xs font-semibold text-foreground tracking-tight">{translate('log.notes')}</label>
             <textarea
               id="notes-status"
               name="notes"
               rows={3}
               maxlength={500}
               placeholder={translate('log.notes_placeholder')}
-              class="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-ring resize-none shadow-xs"
+              class="w-full rounded-2xl border border-border bg-card px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-ring resize-none shadow-2xs leading-relaxed"
             >{existingStatus?.notes ?? ''}</textarea>
           </div>
 
@@ -271,7 +271,7 @@ const moods = [
             <a href="/app" class="flex-1">
               <Button type="button" variant="outline" className="w-full h-10">{translate('log.cancel')}</Button>
             </a>
-            <Button type="submit" className="flex-1 h-10 shadow-xs">
+            <Button type="submit" className="flex-1 h-10 shadow-sm">
               {existingStatus ? translate('log.update') : translate('log.save')}
             </Button>
           </div>
@@ -288,40 +288,40 @@ const moods = [
         <Card className="space-y-4 p-5">
           <!-- Start Date -->
           <div class="flex flex-col gap-1.5">
-            <label for="startDate" class="text-xs font-medium text-foreground tracking-tight">{translate('log.start_date')}</label>
+            <label for="startDate" class="text-xs font-semibold text-foreground tracking-tight">{translate('log.start_date')}</label>
             <input
               type="date"
               id="startDate"
               name="startDate"
               required
               value={existingPeriod?.start_date ?? logDate}
-              class="h-10 w-full rounded-xl border border-border bg-card px-3.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              class="h-10 w-full rounded-xl border border-border bg-card px-3.5 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring shadow-2xs"
             />
           </div>
 
           <!-- End Date -->
           <div class="flex flex-col gap-1.5">
-            <label for="endDate" class="text-xs font-medium text-foreground tracking-tight">{translate('log.end_date')}</label>
+            <label for="endDate" class="text-xs font-semibold text-foreground tracking-tight">{translate('log.end_date')}</label>
             <input
               type="date"
               id="endDate"
               name="endDate"
               required
               value={existingPeriod?.end_date ?? logDate}
-              class="h-10 w-full rounded-xl border border-border bg-card px-3.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              class="h-10 w-full rounded-xl border border-border bg-card px-3.5 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring shadow-2xs"
             />
           </div>
 
           <!-- Flow Intensity Selector -->
           <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-medium text-foreground tracking-tight">{translate('log.flow_intensity')}</label>
+            <label class="text-xs font-semibold text-foreground tracking-tight">{translate('log.flow_intensity')}</label>
             <div class="grid grid-cols-3 gap-2">
               {[
                 { val: 'light', label: translate('log.light') },
                 { val: 'medium', label: translate('log.medium') },
                 { val: 'heavy', label: translate('log.heavy') },
               ].map((opt) => (
-                <label class="relative flex items-center justify-center rounded-xl border border-border bg-card p-2.5 text-xs font-medium cursor-pointer hover:bg-muted/60 transition-all has-checked:border-primary has-checked:bg-primary/10 has-checked:text-primary">
+                <label class="relative flex items-center justify-center rounded-2xl border border-border/80 bg-card p-2.5 text-xs font-semibold cursor-pointer hover:bg-muted/60 transition-all has-checked:border-primary has-checked:bg-primary/10 has-checked:text-primary active:scale-[0.98] shadow-2xs">
                   <input
                     type="radio"
                     name="flowIntensity"
@@ -337,14 +337,14 @@ const moods = [
 
           <!-- Notes -->
           <div class="flex flex-col gap-1.5">
-            <label for="notes-period" class="text-xs font-medium text-foreground tracking-tight">{translate('log.notes')}</label>
+            <label for="notes-period" class="text-xs font-semibold text-foreground tracking-tight">{translate('log.notes')}</label>
             <textarea
               id="notes-period"
               name="notes"
               rows={3}
               maxlength={500}
               placeholder={translate('log.notes_placeholder')}
-              class="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-ring resize-none shadow-xs"
+              class="w-full rounded-2xl border border-border bg-card px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-ring resize-none shadow-2xs leading-relaxed"
             >{existingPeriod?.notes ?? ''}</textarea>
           </div>
 
@@ -352,7 +352,7 @@ const moods = [
             <a href="/app" class="flex-1">
               <Button type="button" variant="outline" className="w-full h-10">{translate('log.cancel')}</Button>
             </a>
-            <Button type="submit" className="flex-1 h-10 shadow-xs">
+            <Button type="submit" className="flex-1 h-10 shadow-sm">
               {existingPeriod ? translate('log.update') : translate('log.save')}
             </Button>
           </div>
@@ -370,11 +370,11 @@ const moods = [
       const tabPeriod = document.getElementById('tab-period');
       
       if (t === 'status') {
-        tabStatus.className = 'flex-1 rounded-xl py-2 text-xs font-semibold tracking-tight transition-all duration-150 bg-primary text-primary-foreground shadow-xs';
-        tabPeriod.className = 'flex-1 rounded-xl py-2 text-xs font-semibold tracking-tight transition-all duration-150 text-muted-foreground hover:text-foreground';
+        tabStatus.className = 'flex-1 rounded-xl py-2 text-xs font-semibold tracking-tight transition-all duration-150 bg-primary text-primary-foreground shadow-sm shadow-primary/20';
+        tabPeriod.className = 'flex-1 rounded-xl py-2 text-xs font-semibold tracking-tight transition-all duration-150 text-muted-foreground hover:text-foreground hover:bg-muted/50';
       } else {
-        tabPeriod.className = 'flex-1 rounded-xl py-2 text-xs font-semibold tracking-tight transition-all duration-150 bg-primary text-primary-foreground shadow-xs';
-        tabStatus.className = 'flex-1 rounded-xl py-2 text-xs font-semibold tracking-tight transition-all duration-150 text-muted-foreground hover:text-foreground';
+        tabPeriod.className = 'flex-1 rounded-xl py-2 text-xs font-semibold tracking-tight transition-all duration-150 bg-primary text-primary-foreground shadow-sm shadow-primary/20';
+        tabStatus.className = 'flex-1 rounded-xl py-2 text-xs font-semibold tracking-tight transition-all duration-150 text-muted-foreground hover:text-foreground hover:bg-muted/50';
       }
       
       const url = new URL(window.location);

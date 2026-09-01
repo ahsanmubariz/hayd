@@ -1,92 +1,38 @@
 ---
 import AppShell from '@/layouts/AppShell.astro';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { CalendarGrid } from '@/components/ui/calendar-grid';
-import { Button } from '@/components/ui/button';
+import { InteractiveCalendar } from '@/components/app/interactive-calendar';
 import { findPeriodLogs, findLatestPrediction } from '@/lib/db/client';
-import { todayIso, addDays } from '@/lib/utils/dates';
+import { listDailyStatusLogs } from '@/lib/modules/cycles/repository';
+import { todayIso } from '@/lib/utils/dates';
 import { translate } from '@/lib/i18n/use-translation';
 
 export const prerender = false;
 
 const user = Astro.locals.user!;
 const periodLogs = await findPeriodLogs(user.id);
+const dailyLogs = await listDailyStatusLogs(user.id);
 const prediction = await findLatestPrediction(user.id);
 const today = todayIso();
 
-const initialMonth = today.slice(0, 7);
-
-const markedDates = new Map<string, 'period' | 'predicted' | 'ovulation' | 'fertile'>();
-
-for (const log of periodLogs) {
-  let d = log.start_date;
-  while (d <= log.end_date) {
-    if (!markedDates.has(d)) markedDates.set(d, 'period');
-    d = addDays(d, 1);
-  }
-}
-
-if (prediction) {
-  if (prediction.predicted_ovulation_date) markedDates.set(prediction.predicted_ovulation_date, 'ovulation');
-  if (prediction.predicted_next_period_date) markedDates.set(prediction.predicted_next_period_date, 'predicted');
-  if (prediction.predicted_fertile_start && prediction.predicted_fertile_end) {
-    let d = prediction.predicted_fertile_start;
-    while (d <= prediction.predicted_fertile_end) {
-      if (!markedDates.has(d)) markedDates.set(d, 'fertile');
-      d = addDays(d, 1);
-    }
-  }
-}
+const predictionData = prediction ? {
+  predictedNextPeriodDate: prediction.predicted_next_period_date,
+  predictedOvulationDate: prediction.predicted_ovulation_date,
+  predictedFertileStart: prediction.predicted_fertile_start,
+  predictedFertileEnd: prediction.predicted_fertile_end,
+  averageCycleLength: prediction.average_cycle_length_used,
+} : null;
 ---
 
 <AppShell title="Calendar" activeRoute="calendar" headerTitle={translate('nav.calendar')} headerSubtitle="Monthly cycle rhythm at a glance">
-  <div class="space-y-4 p-4 pb-8 select-none">
-    <Card className="p-3 shadow-sm shadow-stone-900/5">
-      <CalendarGrid
-        initialMonth={initialMonth}
-        today={today}
-        markedDates={markedDates}
-        onSelect={(date) => {
-          window.location.href = `/app/log?date=${date}`;
-        }}
-        client:load
-      />
-    </Card>
-
-    <Card>
-      <CardHeader className="p-4 pb-2">
-        <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{translate('calendar.legend')}</CardTitle>
-      </CardHeader>
-      <CardContent className="p-4 pt-1">
-        <div className="grid grid-cols-2 gap-2.5 text-xs">
-          <div className="flex items-center gap-2 rounded-2xl bg-primary/10 p-2.5 border border-primary/20">
-            <span className="h-2.5 w-2.5 rounded-full bg-primary shrink-0 shadow-xs" />
-            <span className="font-semibold text-foreground">{translate('calendar.period')}</span>
-          </div>
-          <div className="flex items-center gap-2 rounded-2xl bg-primary/5 p-2.5 border border-primary/25 border-dashed">
-            <span className="h-2.5 w-2.5 rounded-full bg-primary/40 shrink-0" />
-            <span className="font-semibold text-foreground">{translate('calendar.predicted')}</span>
-          </div>
-          <div className="flex items-center gap-2 rounded-2xl bg-sage/10 p-2.5 border border-sage/25">
-            <span className="h-2.5 w-2.5 rounded-full bg-sage shrink-0 shadow-xs" />
-            <span className="font-semibold text-foreground">{translate('calendar.ovulation')}</span>
-          </div>
-          <div className="flex items-center gap-2 rounded-2xl bg-sage/5 p-2.5 border border-sage/20">
-            <span className="h-2.5 w-2.5 rounded-full bg-sage/40 shrink-0" />
-            <span className="font-semibold text-foreground">{translate('calendar.fertile_window')}</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-
-    <a href="/app/log" class="block">
-      <Button className="w-full h-11 text-xs font-semibold shadow-sm" size="md">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 5v14M5 12h14"/>
-        </svg>
-        {translate('calendar.add_log')}
-      </Button>
-    </a>
+  <div class="p-4 pb-10">
+    <InteractiveCalendar
+      today={today}
+      periodLogs={periodLogs}
+      dailyLogs={dailyLogs}
+      prediction={predictionData}
+      client:load
+    />
   </div>
 </AppShell>
+
 
